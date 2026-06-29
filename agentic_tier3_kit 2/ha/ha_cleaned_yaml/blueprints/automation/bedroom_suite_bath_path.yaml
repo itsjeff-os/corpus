@@ -1,0 +1,305 @@
+blueprint:
+  name: Bedroom Suite • Bathroom Path
+  description: >
+    Coordinates wardrobe + bathroom lighting for bathroom trips.
+    Triggered by wardrobe/bathroom motion; applies ultra-low warm lighting at night.
+  domain: automation
+
+  input:
+    wardrobe_motion:
+      name: Wardrobe motion / presence sensor
+      selector:
+        entity:
+          domain: binary_sensor
+
+    bathroom_motion:
+      name: Bathroom motion sensor
+      selector:
+        entity:
+          domain: binary_sensor
+
+    wardrobe_light:
+      name: Wardrobe ceiling light / group
+      selector:
+        target:
+          entity:
+            domain: light
+
+    bathroom_light:
+      name: Bathroom ceiling light / group
+      selector:
+        target:
+          entity:
+            domain: light
+
+    # Time windows
+    night_start:
+      name: Night starts at
+      default: "23:00:00"
+      selector:
+        time: {}
+    night_end:
+      name: Night ends at
+      default: "06:00:00"
+      selector:
+        time: {}
+
+    morning_start:
+      name: Morning starts at
+      default: "06:00:00"
+      selector:
+        time: {}
+    morning_end:
+      name: Morning ends at
+      default: "09:30:00"
+      selector:
+        time: {}
+
+    evening_start:
+      name: Evening starts at
+      default: "16:00:00"
+      selector:
+        time: {}
+
+    # Profiles
+    day_brightness:
+      name: Day brightness (%)
+      default: 80
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+    day_color_temp:
+      name: Day color temperature (mired)
+      default: 300
+      selector:
+        number:
+          min: 250
+          max: 500
+          unit_of_measurement: "mired"
+
+    evening_brightness:
+      name: Evening brightness (%)
+      default: 60
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+    evening_color_temp:
+      name: Evening color temperature (mired)
+      default: 340
+      selector:
+        number:
+          min: 250
+          max: 500
+          unit_of_measurement: "mired"
+
+    night_brightness_wardrobe:
+      name: Night brightness – wardrobe (%)
+      default: 18
+      selector:
+        number:
+          min: 1
+          max: 40
+          unit_of_measurement: "%"
+    night_brightness_bathroom:
+      name: Night brightness – bathroom (%)
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 40
+          unit_of_measurement: "%"
+    night_color_temp:
+      name: Night color temperature (mired)
+      default: 430
+      selector:
+        number:
+          min: 300
+          max: 500
+          unit_of_measurement: "mired"
+
+    off_delay:
+      name: Off delay after last movement (minutes)
+      default: 4
+      selector:
+        number:
+          min: 1
+          max: 30
+          unit_of_measurement: minutes
+          mode: slider
+
+    fade_in_transition:
+      name: Fade-in time (seconds)
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 20
+          unit_of_measurement: "s"
+    fade_out_transition:
+      name: Fade-out time (seconds)
+      default: 4
+      selector:
+        number:
+          min: 0
+          max: 30
+          unit_of_measurement: "s"
+
+mode: restart
+
+variables:
+  off_delay: !input off_delay
+  fade_in_transition: !input fade_in_transition
+  fade_out_transition: !input fade_out_transition
+  night_start: !input night_start
+  night_end: !input night_end
+  morning_start: !input morning_start
+  morning_end: !input morning_end
+  evening_start: !input evening_start
+  day_brightness: !input day_brightness
+  day_color_temp: !input day_color_temp
+  evening_brightness: !input evening_brightness
+  evening_color_temp: !input evening_color_temp
+  night_brightness_wardrobe: !input night_brightness_wardrobe
+  night_brightness_bathroom: !input night_brightness_bathroom
+  night_color_temp: !input night_color_temp
+
+trigger:
+  - id: wardrobe_motion_on
+    platform: state
+    entity_id: !input wardrobe_motion
+    to: "on"
+  - id: bathroom_motion_on
+    platform: state
+    entity_id: !input bathroom_motion
+    to: "on"
+  - id: wardrobe_motion_off
+    platform: state
+    entity_id: !input wardrobe_motion
+    to: "off"
+  - id: bathroom_motion_off
+    platform: state
+    entity_id: !input bathroom_motion
+    to: "off"
+
+action:
+  - choose:
+      # TURN ON: any motion
+      - conditions:
+          - condition: or
+            conditions:
+              - condition: trigger
+                id: wardrobe_motion_on
+              - condition: trigger
+                id: bathroom_motion_on
+        sequence:
+          # Don't bother in full daylight
+          - condition: numeric_state
+            entity_id: sun.sun
+            attribute: elevation
+            below: 20
+
+          - choose:
+              # Night – ultra gentle
+              - conditions:
+                  - condition: or
+                    conditions:
+                      - condition: time
+                        after: !input night_start
+                      - condition: time
+                        before: !input night_end
+                sequence:
+                  - service: light.turn_on
+                    target: !input wardrobe_light
+                    data:
+                      brightness_pct: "{{ night_brightness_wardrobe | int }}"
+                      color_temp: "{{ night_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+                  - service: light.turn_on
+                    target: !input bathroom_light
+                    data:
+                      brightness_pct: "{{ night_brightness_bathroom | int }}"
+                      color_temp: "{{ night_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+
+              # Morning – brighter and neutral-warm
+              - conditions:
+                  - condition: time
+                    after: !input morning_start
+                    before: !input morning_end
+                sequence:
+                  - service: light.turn_on
+                    target: !input bathroom_light
+                    data:
+                      brightness_pct: 60
+                      color_temp: 320
+                      transition: "{{ fade_in_transition | int }}"
+                  - service: light.turn_on
+                    target: !input wardrobe_light
+                    data:
+                      brightness_pct: 50
+                      color_temp: 320
+                      transition: "{{ fade_in_transition | int }}"
+
+              # Evening – warm and functional
+              - conditions:
+                  - condition: time
+                    after: !input evening_start
+                    before: !input night_start
+                sequence:
+                  - service: light.turn_on
+                    target: !input bathroom_light
+                    data:
+                      brightness_pct: "{{ evening_brightness | int }}"
+                      color_temp: "{{ evening_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+                  - service: light.turn_on
+                    target: !input wardrobe_light
+                    data:
+                      brightness_pct: "{{ evening_brightness | int }}"
+                      color_temp: "{{ evening_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+
+            default:
+              # Day – if it's gloomy (sun < 20) but not evening yet
+              - service: light.turn_on
+                target: !input bathroom_light
+                data:
+                  brightness_pct: "{{ day_brightness | int }}"
+                  color_temp: "{{ day_color_temp | int }}"
+                  transition: "{{ fade_in_transition | int }}"
+              - service: light.turn_on
+                target: !input wardrobe_light
+                data:
+                  brightness_pct: "{{ day_brightness | int }}"
+                  color_temp: "{{ day_color_temp | int }}"
+                  transition: "{{ fade_in_transition | int }}"
+
+      # TURN OFF: both sensors quiet
+      - conditions:
+          - condition: or
+            conditions:
+              - condition: trigger
+                id: wardrobe_motion_off
+              - condition: trigger
+                id: bathroom_motion_off
+        sequence:
+          - delay:
+              minutes: "{{ off_delay | int }}"
+          - condition: state
+            entity_id: !input wardrobe_motion
+            state: "off"
+          - condition: state
+            entity_id: !input bathroom_motion
+            state: "off"
+          - service: light.turn_off
+            target: !input bathroom_light
+            data:
+              transition: "{{ fade_out_transition | int }}"
+          - service: light.turn_off
+            target: !input wardrobe_light
+            data:
+              transition: "{{ fade_out_transition | int }}"

@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "constraint-integrity-worker",
+  "main": "src/index.js",
+  "compatibility_date": "2026-04-16",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "INTEGRITY_SESSION",
+        "class_name": "IntegritySession"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["IntegritySession"]
+    }
+  ]
+  // Optional later:
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "POLICY_KV",
+  //     "id": "YOUR_KV_NAMESPACE_ID"
+  //   }
+  // ]
+}

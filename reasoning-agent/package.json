@@ -1,0 +1,22 @@
+{
+  "name": "reasoning-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@getzep/zep-cloud": "^3.18.0",
+    "@types/node": "^25.3.3",
+    "dotenv": "^17.3.1",
+    "openai": "^6.25.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
+  }
+}

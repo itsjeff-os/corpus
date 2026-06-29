@@ -1,0 +1,42 @@
+[
+  {
+    "id": "starter-overview",
+    "title": "Starter overview",
+    "url": "https://example.invalid/docs/starter-overview",
+    "text": "This starter implements the standard search and fetch tools for connector-like and sync-oriented ChatGPT apps. It keeps the server dependency-free so you can smoke test the MCP loop locally.",
+    "metadata": {
+      "tags": ["starter", "search", "fetch", "connector"],
+      "source": "local-corpus"
+    }
+  },
+  {
+    "id": "apps-sdk-notes",
+    "title": "Apps SDK notes",
+    "url": "https://example.invalid/docs/apps-sdk-notes",
+    "text": "Use the MCP Apps bridge by default for widgets, but a tool-only app does not need a UI resource. Read-only tools should be idempotent and include precise, machine-friendly input schemas.",
+    "metadata": {
+      "tags": ["apps-sdk", "bridge", "read-only"],
+      "source": "local-corpus"
+    }
+  },
+  {
+    "id": "validation-checklist",
+    "title": "Validation checklist",
+    "url": "https://example.invalid/docs/validation-checklist",
+    "text": "Validate the /mcp route, tool descriptors, and local smoke tests. If dependencies are absent, run syntax and HTTP contract checks and report the gap explicitly.",
+    "metadata": {
+      "tags": ["validation", "mcp", "contract"],
+      "source": "local-corpus"
+    }
+  },
+  {
+    "id": "chatgpt-developer-mode",
+    "title": "ChatGPT developer mode setup",
+    "url": "https://example.invalid/docs/chatgpt-developer-mode",
+    "text": "Expose localhost over HTTPS with a tunnel, then add the /mcp URL in ChatGPT developer mode. Refresh the app after tool metadata changes.",
+    "metadata": {
+      "tags": ["chatgpt", "developer-mode", "tunnel"],
+      "source": "local-corpus"
+    }
+  }
+]

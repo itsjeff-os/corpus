@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+
+  ship-backend:
+    container_name: ship-backend
+    build: .
+    restart: unless-stopped
+
+    ports:
+      - "8787:8000"
+
+    environment:
+      - HA_URL=http://host.docker.internal:8123
+      - HA_TOKEN=${HA_TOKEN}
+
+    volumes:
+      - ./app:/app
+      - ./data:/data
+
+    command: uvicorn main:app --host 0.0.0.0 --port 8000

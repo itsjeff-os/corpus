@@ -1,0 +1,206 @@
+blueprint:
+  name: Room • Follow-Me Atmospheric Lighting
+  description: >
+    Fade-in / fade-out atmospheric lighting that reacts to motion/presence.
+    Uses an "evening" profile and a "night (sleepy)" profile. Only runs when
+    it's dark outside (sun elevation below threshold).
+  domain: automation
+
+  input:
+    sensor_entity:
+      name: Motion / Presence Sensor
+      description: Binary sensor that indicates occupancy (motion or presence).
+      selector:
+        entity:
+          domain: binary_sensor
+
+    light_target:
+      name: Light or Light Group
+      description: The light (or group) to control.
+      selector:
+        target:
+          entity:
+            domain: light
+
+    off_delay:
+      name: Off delay (minutes)
+      description: How long after the room is empty before fading lights out.
+      default: 4
+      selector:
+        number:
+          min: 0
+          max: 60
+          unit_of_measurement: minutes
+          mode: slider
+
+    dark_elevation_below:
+      name: Run only when sun elevation below
+      description: 0 ≈ sunset/dusk. Increase if you want it to trigger earlier.
+      default: 0
+      selector:
+        number:
+          min: -10
+          max: 30
+          step: 1
+          unit_of_measurement: "°"
+
+    evening_start:
+      name: Evening starts at
+      default: "16:00:00"
+      selector:
+        time: {}
+
+    night_start:
+      name: Night (sleepy) starts at
+      default: "22:30:00"
+      selector:
+        time: {}
+
+    morning_end:
+      name: Night ends at
+      default: "06:00:00"
+      selector:
+        time: {}
+
+    evening_brightness:
+      name: Evening brightness (%)
+      default: 60
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+
+    evening_color_temp:
+      name: Evening color temperature (mired)
+      description: Lower = cooler, higher = warmer.
+      default: 350
+      selector:
+        number:
+          min: 250
+          max: 500
+          unit_of_measurement: "mired"
+
+    night_brightness:
+      name: Night brightness (%)
+      default: 18
+      selector:
+        number:
+          min: 1
+          max: 50
+          unit_of_measurement: "%"
+
+    night_color_temp:
+      name: Night color temperature (mired)
+      default: 400
+      selector:
+        number:
+          min: 300
+          max: 500
+          unit_of_measurement: "mired"
+
+    fade_in_transition:
+      name: Fade-in time (seconds)
+      default: 4
+      selector:
+        number:
+          min: 0
+          max: 30
+          unit_of_measurement: "s"
+
+    fade_out_transition:
+      name: Fade-out time (seconds)
+      default: 6
+      selector:
+        number:
+          min: 0
+          max: 60
+          unit_of_measurement: "s"
+
+mode: restart
+
+variables:
+  off_delay: !input off_delay
+  dark_elevation_below: !input dark_elevation_below
+  evening_start: !input evening_start
+  night_start: !input night_start
+  morning_end: !input morning_end
+  evening_brightness: !input evening_brightness
+  evening_color_temp: !input evening_color_temp
+  night_brightness: !input night_brightness
+  night_color_temp: !input night_color_temp
+  fade_in_transition: !input fade_in_transition
+  fade_out_transition: !input fade_out_transition
+
+trigger:
+  - id: presence_on
+    platform: state
+    entity_id: !input sensor_entity
+    to: "on"
+  - id: presence_off
+    platform: state
+    entity_id: !input sensor_entity
+    to: "off"
+
+action:
+  - choose:
+      # 1) SENSOR ON → Fade in
+      - conditions:
+          - condition: trigger
+            id: presence_on
+          - condition: numeric_state
+            entity_id: sun.sun
+            attribute: elevation
+            below: !input dark_elevation_below
+        sequence:
+          - choose:
+              # Evening profile
+              - conditions:
+                  - condition: time
+                    after: !input evening_start
+                    before: !input night_start
+                sequence:
+                  - service: light.turn_on
+                    target: !input light_target
+                    data:
+                      brightness_pct: "{{ evening_brightness | int }}"
+                      color_temp: "{{ evening_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+
+              # Night profile
+              - conditions:
+                  - condition: or
+                    conditions:
+                      - condition: time
+                        after: !input night_start
+                      - condition: time
+                        before: !input morning_end
+                sequence:
+                  - service: light.turn_on
+                    target: !input light_target
+                    data:
+                      brightness_pct: "{{ night_brightness | int }}"
+                      color_temp: "{{ night_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+            default:
+              - service: light.turn_on
+                target: !input light_target
+                data:
+                  brightness_pct: "{{ evening_brightness | int }}"
+                  color_temp: "{{ evening_color_temp | int }}"
+                  transition: "{{ fade_in_transition | int }}"
+
+      # 2) SENSOR OFF → Delay + fade out
+      - conditions:
+          - condition: trigger
+            id: presence_off
+        sequence:
+          - delay:
+              minutes: "{{ off_delay | int }}"
+          - condition: state
+            entity_id: !input sensor_entity
+            state: "off"
+          - service: light.turn_off
+            target: !input light_target
+            data:
+              transition: "{{ fade_out_transition | int }}"

@@ -1,0 +1,21 @@
+services:
+  gpt-assistant:
+    build: .
+    container_name: gpt-assistant
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8765:8765"
+    volumes:
+      - gpt_assistant_data:/data
+    networks:
+      - lifeos-graph
+
+volumes:
+  gpt_assistant_data:
+
+networks:
+  lifeos-graph:
+    external: true
+

@@ -1,0 +1,18 @@
+write_automation_and_reload:
+  alias: Write automation from n8n and reload
+  mode: queued
+  fields:
+    file_name:
+      description: File name to write under /config/packages
+      example: n8n_automation_1733180720.yaml
+    automation_yaml:
+      description: Full YAML content of the automation
+      example: "alias: Test\ntrigger: []\naction: []"
+  sequence:
+    - service: shell_command.write_automation
+      data:
+        file_name: "{{ file_name }}"
+        automation_yaml: "{{ automation_yaml }}"
+    - delay:
+        seconds: 1
+    - service: automation.reload

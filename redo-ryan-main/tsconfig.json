@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "strict": true
+  },
+  "include": [
+    "src/index.ts",
+    "src/server.ts",
+    "src/config/**/*.ts",
+    "src/prompts/**/*.ts",
+    "src/services/**/*.ts",
+    "src/ryan/**/*.ts",
+    "src/interfaces/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/agent/**",
+    "src/rituals/**",
+    "src/scheduler/**",
+    "src/state/**"
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "title": "PSRA Drop Index",
+    "scope": "Thread-local drop index. Not saved memory.",
+    "active_count": "8/20 indexed",
+    "next_new_payload": "9/20",
+    "tracking_rules": [
+      "Focus on this thread’s drop index only.",
+      "Do not cross-check the zip unless explicitly asked.",
+      "Duplicate detection applies against the drop index only.",
+      "Direct duplicates are not double-indexed.",
+      "Material overlaps are flagged but separately indexed.",
+      "Commentary is allowed only beside the payload and must not reinterpret, edit, classify, evaluate, or mutate the payload."
+    ],
+    "updated_at_utc": "2026-06-09T11:50:27.785085+00:00"
+  },
+  "drops": [
+    {
+      "drop": "1/20",
+      "label": "Passive Structural Runtime Audit v1",
+      "what_it_is": "Full PSRA audit prompt/protocol for evidence-bound component-first artefact analysis without fixes, refactors, reconciliation, or advice.",
+      "anchor": "The constraints in this prompt are controls, not content. Do not merely mention them. Enforce them by excluding output that violates them.",
+      "status": "indexed",
+      "overlaps": []
+    },
+    {
+      "drop": "2/20",
+      "label": "Cognitive Substrate Loop Audit",
+      "what_it_is": "Passive audit writeup of a zipped TypeScript/Node assistant cognitive substrate runtime, including package/config, loop, context hydration, adapters, controls, OpenAI generation, Supabase storage, migration, tests, runtime consequences, gaps, and synthesis.",
+      "anchor": "The architecture says “constraints become controls.” The implementation currently mostly says “constraints become model-visible context plus some substring gates.”",
+      "status": "indexed",
+      "overlaps": [
+        "Drop 1/20 at audit method/protocol level"
+      ]
+    },
+    {
+      "drop": "3/20",
+      "label": "API-first Audit Workflow Architecture",
+      "what_it_is": "Architecture note for implementing PSRA using an API-first core, MCP/tool interface, n8n orchestration wrapper, optional Custom GPT front-end, and optional multi-pass/multi-agent layers.",
+      "anchor": "Build the brainstem as API. Expose it through MCP. Let n8n move things around. Use Custom GPT as a comfy cockpit. Add multi-agent only where it beats single-agent plus validation.",
+      "status": "indexed",
+      "overlaps": [
+        "Drop 1/20 on PSRA workflow",
+        "Drop 2/20 on cognitive substrate/enforcement architecture"
+      ]
+    },
+    {
+      "drop": "4/20",
+      "label": "PSRA v1.1 Invocation Contract",
+      "what_it_is": "Named workflow call pattern for invoking PSRA without pasting the full prompt each time, including canonical call, short call, structured call, router entry, failure detection, and variants.",
+      "anchor": "PSRA this, component-first, as-written, no fixes.",
+      "status": "indexed",
+      "overlaps": [
+        "Drop 1/20 on PSRA protocol",
+        "Drop 3/20 on workflow/API routing"
+      ]
+    },
+    {
+      "drop": "5/20",
+      "label": "Dynamic PSRA Cloudflare Workflow Definition",
+      "what_it_is": "Architecture note for making PSRA a manifest-driven, stateful, versioned Cloudflare Workflow with phase order, validators, output contracts, R2 artefact storage, Supabase/D1 records, Durable Object run state, n8n orchestration, and AI Gateway/model-call observability.",
+      "anchor": "Make PSRA a dynamic workflow definition, not a static mega-prompt.",
+      "status": "indexed",
+      "overlaps": [
+        "Drop 3/20 on API/MCP/n8n/Custom GPT architecture",
+        "Drop 4/20 on PSRA invocation/workflow contract",
+        "Drop 1/20 on PSRA protocol phases and exclusions"
+      ]
+    },
+    {
+      "drop": "6/20",
+      "label": "PSRA v1.1 Optimized Prompt",
+      "what_it_is": "Shorter, stricter PSRA v1.1 prompt with non-negotiable controls, priority order, materiality rule, fixed audit workflow, and silent self-check rejection conditions.",
+      "anchor": "I’d optimize it by making it shorter, stricter, and more enforceable.",
+      "status": "indexed",
+      "overlaps": [
+        "Drop 1/20 on full PSRA audit protocol",
+        "Drop 4/20 on PSRA v1.1 invocation/workflow contract",
+        "Drop 5/20 on validator-shaped PSRA controls"
+      ]
+    },
+    {
+      "drop": "7/20",
+      "label": "PSRA Capability Upgrade Ladder",
+      "what_it_is": "Capability design note for making PSRA more intelligent through phase-specific passes, artefact graph/state, validators, materiality scoring, evidence references, capability profiles, regression memory, audit trace, and human promotion boundaries while preserving the passive audit invariant.",
+      "anchor": "That is how PSRA grows teeth without growing hands.",
+      "status": "indexed",
+      "overlaps": [
+        "Drop 5/20 on manifest-driven Cloudflare workflow execution, validators, R2, Durable Objects, AI Gateway, and stateful PSRA runs",
+        "Drop 6/20 on stricter validator-shaped PSRA controls",
+        "Drop 4/20 on PSRA profiles/variants and named workflow invocation"
+      ]
+    },
+    {
+      "drop": "8/20",
+      "label": "PSRA Dynamic Workflow Codex Build Schema",
+      "what_it_is": "Codex-ready build contract for implementing PSRA v1.1 as a Cloudflare-hosted, manifest-driven, stateful workflow runner with API endpoints, Durable Object run state, R2 artefact/result storage, Supabase persistence, structured phase outputs, validators, tests, security boundaries, and definition of done.",
+      "anchor": "Schema accepted. Debate closed. Build exactly this.",
+      "status": "indexed",
+      "overlaps": [
+        "Drop 5/20 on dynamic Cloudflare workflow architecture",
+        "Drop 7/20 on phase-specific PSRA execution, validators, evidence graph, state controller, regression tests, and audit trace",
+        "Drop 6/20 on validator-shaped PSRA controls",
+        "Drop 4/20 on PSRA v1.1 workflow identity/profiles"
+      ]
+    }
+  ],
+  "duplicates": [
+    {
+      "message": "Repeated Cognitive Substrate Loop Audit",
+      "duplicate_of": "Drop 2/20"
+    },
+    {
+      "message": "Repeated PSRA v1.1 Optimized Prompt",
+      "duplicate_of": "Drop 6/20"
+    },
+    {
+      "message": "Repeated Passive Structural Runtime Audit v1",
+      "duplicate_of": "Drop 1/20"
+    }
+  ]
+}

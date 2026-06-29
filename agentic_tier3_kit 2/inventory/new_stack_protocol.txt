@@ -1,0 +1,40 @@
+## New Stack Protocol (NSP)
+
+Whenever I add a new long-lived service (app or infra) to the homelab, it follows this pattern:
+
+1. **Location**
+   - Apps live under `/srv/apps/<name>/`
+   - Infra/glue lives under `/srv/infra/<name>/`
+   - For now I have:
+     - `/srv/homeassistant`            (app)
+     - `/srv/infra/portainer`          (infra)
+
+2. **Scaffold**
+   - Create the folder under `/srv/...`.
+   - Add a `docker-compose.yml` with:
+     - service name
+     - image/build
+     - ports
+     - volumes (with clear host paths if needed)
+   - Add a minimal `README.md` in that folder with:
+     - purpose of the stack
+     - how to start/stop it
+     - ports / URLs
+     - any external dependencies (DB, API keys, etc.)
+
+3. **Aliases**
+   - For each stack, define at least:
+     - `cd-<name>` → `cd /srv/.../<name>`
+     - `<name>-up` → `cd /srv/.../<name> && docker compose up -d`
+     - `<name>-down` → `cd /srv/.../<name> && docker compose down`
+     - `<name>-logs` → `docker logs -f <container_name>`
+   - These go in `~/.bash_aliases`.
+
+4. **Docs / CLI**
+   - Add a row for the stack in `HOMELAB.md` under “Stacks”.
+   - Add its main commands to the Homelab CLI Canvas (in ChatGPT) and optionally `HOMELAB_CLI.md` on the server.
+
+5. **Naming**
+   - Container names and aliases should be short and consistent:
+     - e.g. `zep-bridge`, `zep-bridge-up`, `zep-bridge-logs`
+   - Prefer a single canonical name per stack across compose, aliases, and docs.

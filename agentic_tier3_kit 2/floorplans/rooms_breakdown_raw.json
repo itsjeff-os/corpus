@@ -1,0 +1,41 @@
+{
+"rooms": {
+"Core": {
+"type": ["open_plan","shared_living_dining_kitchen"],
+"approx_area_sqft": 310,
+"neighbors": ["Pass", "Alpha"],
+"window_faces": ["East"],
+"subzones": ["Core_NE", "Core_NW", "Core_SE", "Core_SW"]
+},
+"Alpha": {
+"type": "bedroom",
+"approx_area_sqft": 140,
+"neighbors": ["Pass", "Throne"],
+"window_faces": ["East"],
+"subzones": ["Alpha_Bed", "Alpha_Flex"]
+},
+"Throne": {
+"type": "bathroom_ensuite",
+"neighbors": ["Alpha"]
+},
+"Beta": {
+"type": "bedroom",
+"approx_area_sqft": 163,
+"neighbors": ["Pass", "Splash"],
+"subzones": ["Beta_Bed", "Beta_Flex"]
+},
+"Splash": {
+"type": "bathroom_rear",
+"neighbors": ["Pass", "Beta"]
+},
+"Pass": {
+"type": "hall", "storage"
+"neighbors": ["Core", "Alpha", "Beta", "Splash"],
+"subzones": ["Vault", "Alpha_Pass", "Beta_Pass", "Splash_Pass", "Chaos_Pass"]
+},
+"Chaos": {
+"type": "utility_storage",
+"neighbors": ["Pass"]
+}
+}
+}

@@ -1,0 +1,256 @@
+version: "3.9"
+
+# Personal Context Engine — E-Version
+# Single-user serious deployment configuration.
+#
+# Prerequisites:
+#   - Copy .env.example to .env and fill in your secrets
+#   - Never commit .env or any file containing credentials
+#
+# Start: docker compose up -d
+# Stop:  docker compose down
+
+services:
+
+  # ─── Infrastructure ────────────────────────────────────────────────
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: pce-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pce}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-pce}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/migrations:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pce}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pce-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: pce-object-store
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-pce}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set in .env}
+    volumes:
+      - object_store_data:/data
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.7
+    container_name: pce-search
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?MEILI_MASTER_KEY must be set in .env}
+      MEILI_ENV: production
+    volumes:
+      - search_data:/meili_data
+    ports:
+      - "127.0.0.1:7700:7700"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ─── PCE Services ──────────────────────────────────────────────────
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: pce-api-gateway
+    restart: unless-stopped
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  chat-orchestrator:
+    build:
+      context: .
+      dockerfile: services/chat-orchestrator/Dockerfile
+    container_name: pce-orchestrator
+    restart: unless-stopped
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY must be set in .env}
+      RETRIEVAL_ENGINE_URL: http://retrieval-engine:8001
+      MEMORY_ENGINE_URL: http://memory-engine:8002
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  retrieval-engine:
+    build:
+      context: .
+      dockerfile: services/retrieval-engine/Dockerfile
+    container_name: pce-retrieval
+    restart: unless-stopped
+    environment:
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+      MEILI_URL: http://meilisearch:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    ports:
+      - "127.0.0.1:8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+
+  ingestion-engine:
+    build:
+      context: .
+      dockerfile: services/ingestion-engine/Dockerfile
+    container_name: pce-ingestion
+    restart: unless-stopped
+    environment:
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+      MINIO_URL: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  memory-engine:
+    build:
+      context: .
+      dockerfile: services/memory-engine/Dockerfile
+    container_name: pce-memory
+    restart: unless-stopped
+    environment:
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/2
+    ports:
+      - "127.0.0.1:8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  knowledge-graph:
+    build:
+      context: .
+      dockerfile: services/knowledge-graph/Dockerfile
+    container_name: pce-knowledge-graph
+    restart: unless-stopped
+    environment:
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  policy-engine:
+    build:
+      context: .
+      dockerfile: services/policy-engine/Dockerfile
+    container_name: pce-policy
+    restart: unless-stopped
+    environment:
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  eval-engine:
+    build:
+      context: .
+      dockerfile: services/eval-engine/Dockerfile
+    container_name: pce-eval
+    restart: unless-stopped
+    environment:
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ─── Workers ───────────────────────────────────────────────────────
+
+  ingestion-worker:
+    build:
+      context: .
+      dockerfile: workers/sync_worker/Dockerfile
+    container_name: pce-sync-worker
+    restart: unless-stopped
+    environment:
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  embedding-worker:
+    build:
+      context: .
+      dockerfile: workers/embedding_worker/Dockerfile
+    container_name: pce-embedding-worker
+    restart: unless-stopped
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-pce}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pce}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  object_store_data:
+  search_data:
+
+networks:
+  default:
+    name: pce-network

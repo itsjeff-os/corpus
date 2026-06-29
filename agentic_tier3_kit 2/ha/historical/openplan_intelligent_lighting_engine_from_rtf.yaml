@@ -1,0 +1,217 @@
+# ===== Intelligent Lighting Engine - Core Package =====
+# Uses my actual entities & helpers.
+
+input_number:
+  ile_linger_minutes_openplan:   # how long to "anchor" before rest scene
+    name: ILE - Linger minutes (Open Plan)
+    min: 1
+    max: 30
+    step: 1
+    mode: slider
+    initial: 5
+  ile_grace_minutes_hold:        # scene memory hold after you leave
+    name: ILE - Grace minutes (Hold)
+    min: 1
+    max: 15
+    step: 1
+    mode: slider
+    initial: 5
+
+input_text:
+  ile_last_scene_openplan:
+    name: ILE - Last Scene (Open Plan)
+    max: 80
+
+timer:
+  ile_hold_openplan:
+    duration: "00:05:00"
+
+# --------- SCENE MEMORY HELPERS (optional defaults) ----------
+# If you already have preferred Hue scenes, keep using them.
+# These names come from my entity list: living_relax, living_energise, living_nightlight.
+# (You can swap them any time.)
+
+# ========== AUTOMATIONS ==========
+automation:
+
+# 1) OPEN PLAN - Handoff + Anchor (movement  settle  rest)
+- id: ile_openplan_handoff_anchor
+  alias: ILE - Open Plan handoff & anchor
+  mode: restart
+  trigger:
+    # Enter open plan zones (FP2)
+    - platform: state
+      entity_id:
+        - binary_sensor.presence_sensor_fp2_living_area
+        - binary_sensor.presence_sensor_fp2_kitchen
+        - binary_sensor.presence_sensor_fp2_dining_area
+      to: "on"
+  condition: []
+  action:
+    - variables:
+        linger: "\\ states('input_number.ile_linger_minutes_openplan') | int \\"
+    # When you enter, bring up an "Active" base (neutral/bright), hold last scene for quick returns
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.focus_mode
+              state: "on"
+          sequence:
+            - service: scene.turn_on
+              target: \ entity_id: scene.living_concentrate \
+            - service: input_text.set_value
+              data: \ value: "scene.living_concentrate" \
+              target: \ entity_id: input_text.ile_last_scene_openplan \
+        - conditions: []
+          sequence:
+            - service: scene.turn_on
+              target: \ entity_id: scene.living_energise \
+            - service: input_text.set_value
+              data: \ value: "scene.living_energise" \
+              target: \ entity_id: input_text.ile_last_scene_openplan \
+    # Start/refresh grace timer for memory hold
+    - service: timer.start
+      data:
+        duration: "00:\\ (states('input_number.ile_grace_minutes_hold') | int) | string \\:00"
+      target: \ entity_id: timer.ile_hold_openplan \
+    # If you linger in living zone for >= linger minutes  shift to Rest (evening bias)
+    - wait_for_trigger:
+        - platform: state
+          entity_id: binary_sensor.presence_sensor_fp2_living_area
+          to: "on"
+          for: "00:\\ '%02d'|format(linger) \\:00"
+      timeout: "00:\\ '%02d'|format(linger+10) \\:00"
+    - if:
+        - condition: state
+          entity_id: binary_sensor.presence_sensor_fp2_living_area
+          state: "on"
+      then:
+        - service: scene.turn_on
+          target: \ entity_id: scene.living_relax \
+        - service: input_text.set_value
+          data: \ value: "scene.living_relax" \
+          target: \ entity_id: input_text.ile_last_scene_openplan \
+
+# 1b) OPEN PLAN - Resolve on exit (with memory hold)
+- id: ile_openplan_resolve_on_exit
+  alias: ILE - Open Plan resolve on exit (grace hold)
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.presence_sensor_fp2_living_area
+        - binary_sensor.presence_sensor_fp2_kitchen
+        - binary_sensor.presence_sensor_fp2_dining_area
+      to: "off"
+      for:
+        minutes: 1
+  action:
+    - wait_for_trigger:
+        - platform: event
+          event_type: timer.finished
+          event_data: \ entity_id: timer.ile_hold_openplan \
+      timeout: "00:15:00"
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.presence_sensor_fp2_living_area
+          state: "off"
+        - condition: state
+          entity_id: binary_sensor.presence_sensor_fp2_kitchen
+          state: "off"
+        - condition: state
+          entity_id: binary_sensor.presence_sensor_fp2_dining_area
+          state: "off"
+    - service: scene.turn_on
+      target: \ entity_id: scene.living_nightlight \
+
+# 2) SLEEP - Wind-Down (Withings in-bed OR bed-zone dwell)
+- id: ile_sleep_wind_down
+  alias: ILE - Sleep wind-down (bed/Withings)
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.bedroom1_withings_sleep_inbed
+      to: "on"
+      for: "00:05:00"
+    - platform: state
+      entity_id: binary_sensor.bedroom1_fp2_bedzone
+      to: "on"
+      for: "00:10:00"
+  condition:
+    - condition: state
+      entity_id: input_boolean.sleep_mode
+      state: "off"
+  action:
+    - service: input_boolean.turn_on
+      target: \ entity_id: input_boolean.sleep_mode \
+    - service: scene.turn_on
+      target: \ entity_id: scene.bedroom1_relax \
+      data: \ transition: 30 \
+    - service: light.turn_on
+      target: \ entity_id: light.bedroom1_all_lights \
+      data: \ brightness_pct: 15, transition: 600 \
+    - service: cover.close_cover
+      target: \ entity_id: cover.openplan_curtains \
+    - service: fan.set_preset_mode
+      target: \ entity_id: fan.core_300s_levoit_purifier \
+      data: \ preset_mode: "sleep" \
+
+# 3) WAKE - Morning re-entry (out of bed OR first exit)
+- id: ile_wake_morning_reentry
+  alias: ILE - Morning re-entry
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.bedroom1_withings_sleep_inbed
+      from: "on"
+      to: "off"
+    - platform: state
+      entity_id: binary_sensor.bedroom1_fp2_bedzone
+      from: "on"
+      to: "off"
+  condition: []
+  action:
+    - service: input_boolean.turn_off
+      target: \ entity_id: input_boolean.sleep_mode \
+    - service: cover.open_cover
+      target: \ entity_id: cover.openplan_curtains \
+    - service: scene.turn_on
+      target: \ entity_id: scene.living_energise \
+      data: \ transition: 10 \
+
+# 4) FOCUS - Overlay (on/off)
+- id: ile_focus_overlay_on
+  alias: ILE - Focus overlay ON
+  trigger:
+    - platform: state
+      entity_id: input_boolean.focus_mode
+      to: "on"
+  action:
+    - service: scene.turn_on
+      target: \ entity_id: scene.living_concentrate \
+    - service: media_player.media_pause
+      target: \ entity_id: media_player.living_homepods \
+
+- id: ile_focus_overlay_off
+  alias: ILE - Focus overlay OFF (resume last)
+  trigger:
+    - platform: state
+      entity_id: input_boolean.focus_mode
+      to: "off"
+  action:
+    - variables:
+        last: "\\ states('input_text.ile_last_scene_openplan') \\"
+    - choose:
+        - conditions: "\\ last != '' \\"
+          sequence:
+            - service: scene.turn_on
+              target: \ entity_id: "\\ last \\" \
+        - conditions: []
+          sequence:
+            - service: scene.turn_on
+              target: \ entity_id: scene.living_relax 
+
+
+
+\

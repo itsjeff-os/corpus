@@ -1,0 +1,27 @@
+{
+  "name": "runtime-core-v1",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "node --test --import tsx tests/*.test.ts",
+    "evals": "node --test --import tsx evals/*.eval.ts",
+    "check": "npm run build && npm test && npm run evals"
+  },
+  "dependencies": {
+    "@1password/sdk": "^0.4.1-beta.1",
+    "@getzep/zep-cloud": "^3.22.0",
+    "@hono/node-server": "^1.14.1",
+    "dotenv": "^17.4.2",
+    "hono": "^4.7.10",
+    "zod": "^3.25.17"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.18",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

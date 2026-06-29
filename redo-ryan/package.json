@@ -1,0 +1,32 @@
+{
+  "name": "reasoning-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "serve": "ts-node src/server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@getzep/zep-cloud": "^3.18.0",
+    "@types/node": "^25.3.3",
+    "dotenv": "^17.3.1",
+    "openai": "^6.25.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dho1GH/redo-ryan.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dho1GH/redo-ryan/issues"
+  },
+  "homepage": "https://github.com/dho1GH/redo-ryan#readme"
+}

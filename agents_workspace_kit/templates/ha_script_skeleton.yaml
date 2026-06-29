@@ -1,0 +1,15 @@
+# Home Assistant script skeleton (copy/paste)
+
+script:
+  area__purpose:
+    alias: "AREA — Purpose"
+    description: >
+      What this script does.
+    mode: single
+    sequence:
+      - service: light.turn_on
+        target:
+          entity_id: light.example
+        data:
+          brightness_pct: 30
+          transition: 2

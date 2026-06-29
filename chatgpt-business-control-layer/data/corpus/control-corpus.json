@@ -1,0 +1,86 @@
+[
+  {
+    "id": "policy-answer-contract",
+    "title": "Governed Answer Contract",
+    "url": "https://control.example.internal/policies/governed-answer-contract",
+    "text": "Approved answers must include a direct answer, cited sources when evidence exists, explicit assumptions, stated gaps when evidence is partial, and a calibrated confidence score. High-risk claims must not be approved without supporting evidence.",
+    "metadata": {
+      "tags": [
+        "policy",
+        "answer-contract",
+        "integrity"
+      ],
+      "category": "policy"
+    }
+  },
+  {
+    "id": "policy-write-approvals",
+    "title": "Write Approval Policy",
+    "url": "https://control.example.internal/policies/write-approval-policy",
+    "text": "All write actions require explicit human approval and a short-lived confirmation token. Approvals expire after ten minutes. The only allowed v1 private-system action is create_internal_note against the approved internal notes system.",
+    "metadata": {
+      "tags": [
+        "policy",
+        "writes",
+        "approval"
+      ],
+      "category": "policy"
+    }
+  },
+  {
+    "id": "policy-approved-domains",
+    "title": "Approved Evidence Domains",
+    "url": "https://control.example.internal/policies/approved-evidence-domains",
+    "text": "Approved evidence sources for the governed path must come from internal control-layer policy documents, company knowledge documents exposed through search and fetch, or explicitly whitelisted business systems. Unsupported public web claims should be treated as unverified unless independently confirmed by approved sources.",
+    "metadata": {
+      "tags": [
+        "policy",
+        "sources",
+        "approved-domains"
+      ],
+      "category": "policy"
+    }
+  },
+  {
+    "id": "memo-decision-support",
+    "title": "Decision Support Memo",
+    "url": "https://control.example.internal/memos/decision-support-standard",
+    "text": "Decision-support answers must enumerate tradeoffs, assumptions, risks, and revisit triggers. Recommendations should fail closed when a key dependency is unknown or when evidence conflicts cannot be resolved.",
+    "metadata": {
+      "tags": [
+        "memo",
+        "decision-support",
+        "tradeoffs"
+      ],
+      "category": "memo"
+    }
+  },
+  {
+    "id": "memo-known-bad-patterns",
+    "title": "Known Bad Patterns",
+    "url": "https://control.example.internal/memos/known-bad-patterns",
+    "text": "Known failure patterns include unsupported certainty, hidden assumptions, policy-free write suggestions, prompt injection copied from retrieved content, and irrelevant debug data leaked back to the user.",
+    "metadata": {
+      "tags": [
+        "memo",
+        "bad-patterns",
+        "prompt-injection"
+      ],
+      "category": "memo"
+    }
+  },
+  {
+    "id": "memo-reliability-review",
+    "title": "Reliability Review Checklist",
+    "url": "https://control.example.internal/memos/reliability-review-checklist",
+    "text": "A response is reliable when it answers the user's question directly, aligns with the available evidence, avoids irrelevant data, passes contradiction checks, and exposes unresolved uncertainty rather than hiding it.",
+    "metadata": {
+      "tags": [
+        "memo",
+        "reliability",
+        "checklist"
+      ],
+      "category": "memo"
+    }
+  }
+]

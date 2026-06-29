@@ -1,0 +1,1140 @@
+{
+  "sessions": [
+    {
+      "id": "51b31858-2911-44e8-9026-47451ddb7d8c",
+      "userId": "demo-user",
+      "sourceAdapters": [
+        "local"
+      ],
+      "conversationId": "chief-of-staff:demo-user",
+      "createdAt": "2026-04-03T05:32:48.972Z",
+      "updatedAt": "2026-04-10T00:01:37.956Z"
+    }
+  ],
+  "workItems": [
+    {
+      "id": "87d9e89e-3f68-4aed-a22c-8c11dc8e691f",
+      "sessionId": "51b31858-2911-44e8-9026-47451ddb7d8c",
+      "userId": "demo-user",
+      "adapter": "local",
+      "input": "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan.",
+      "status": "planned",
+      "createdAt": "2026-04-03T05:32:48.975Z",
+      "updatedAt": "2026-04-03T05:32:48.976Z",
+      "interaction": {
+        "cues": [
+          {
+            "kind": "broad-problem-iterative-preference",
+            "label": "Broad Problem with Iterative Preference",
+            "description": "User names a big space but wants progress in slices.",
+            "evidence": [
+              "rethink",
+              "thread"
+            ],
+            "confidence": 0.9149999999999999
+          }
+        ],
+        "likelyInference": {
+          "summary": "User wants a full architecture or exhaustive framework now.",
+          "rationale": "Broad scope language is easy to over-read as permission for a cathedral answer.",
+          "confidence": 0.9149999999999999,
+          "cueKinds": [
+            "broad-problem-iterative-preference"
+          ]
+        },
+        "correctInference": {
+          "summary": "User wants the broad space explored incrementally, one structural slice at a time.",
+          "rationale": "Correct interpretation is built from the strongest structural cues rather than tone or default completion bias.",
+          "cueKinds": [
+            "broad-problem-iterative-preference"
+          ]
+        },
+        "optimalMode": {
+          "mode": "scoped-co-design",
+          "rationale": "Selected from matched schema cues: scoped-co-design.",
+          "confidence": 0.965
+        },
+        "failureRisks": [
+          {
+            "id": "risk-broad-problem-iterative-preference",
+            "description": "Framework avalanche and premature overbuilding.",
+            "trigger": "Treating broad scope as a request for immediate completeness.",
+            "severity": "high",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          },
+          {
+            "id": "risk-premature-totalization",
+            "description": "The orchestrator may jump from one slice into a full architecture prematurely.",
+            "trigger": "Treating broad scope as permission for total scope completion.",
+            "severity": "high",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          }
+        ],
+        "recoveryMoves": [
+          {
+            "id": "recovery-broad-problem-iterative-preference",
+            "description": "Constrain to one slice first.",
+            "instruction": "Answer with one layer, one map, or one next step, then checkpoint.",
+            "whenToApply": "When broad scope coexists with iterative language.",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          },
+          {
+            "id": "recovery-slice-before-framework",
+            "description": "Keep the reply to one structural layer.",
+            "instruction": "Constrain the response to one layer, one map, or one decision before proposing broader architecture.",
+            "whenToApply": "When the prompt is broad but still dialogic.",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          }
+        ],
+        "summary": "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design"
+      },
+      "normalizedIntent": {
+        "domain": "projects",
+        "subdomain": "general",
+        "requestedOutcome": "plan",
+        "urgency": "low",
+        "confidence": 0.52,
+        "route": "projects.general.plan"
+      },
+      "context": {
+        "sourceOfTruth": "Life_OS",
+        "lifeOsRoot": "/Users/jeff/Life_OS/dev_workspace/Projects/Project_Codex/personalos-core/runtime/life-os",
+        "candidatePaths": [],
+        "notes": [
+          "Route: projects.general.plan",
+          "Mode: scoped-co-design",
+          "Correct inference: User wants the broad space explored incrementally, one structural slice at a time."
+        ],
+        "recentWorkItemIds": [],
+        "memorySummaries": [],
+        "ledgerSnapshot": [
+          "turns=1",
+          "decision=Route work through projects.general.plan",
+          "assumption=User wants the broad space explored incrementally, one structural slice at a time.",
+          "open-question=How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely.",
+          "recovery=Keep the reply to one structural layer."
+        ],
+        "derivedSystems": {
+          "zep": "derived-memory-only",
+          "vectorStore": "derived-index-only"
+        }
+      },
+      "actionProposals": [
+        {
+          "id": "55b8bb1f-4291-41cb-9a4b-26ca7d7d75fd",
+          "type": "draft_plan",
+          "status": "proposed",
+          "description": "Produce the primary plan artifact for projects.general.plan.",
+          "rationale": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+          "requiresApproval": false,
+          "artifact": {
+            "nextSteps": [
+              "Constrain the next output to one useful slice before expanding scope.",
+              "Keep the response in scoped-co-design mode.",
+              "Use projects.general.plan as the routing spine for follow-on specialist work.",
+              "Turn the request into prioritized next actions, not a broad manifesto."
+            ],
+            "openQuestions": [
+              "Which slice should be handled first?"
+            ],
+            "mode": "scoped-co-design"
+          }
+        },
+        {
+          "id": "b83df886-d0b1-4f62-be34-c2642046ca77",
+          "type": "capture_memory",
+          "status": "proposed",
+          "description": "Capture the interaction assessment and plan as derived memory.",
+          "rationale": "Persist the corrected inference, recovery moves, and routing outcome for continuity.",
+          "requiresApproval": false,
+          "artifact": {
+            "cues": [
+              "broad-problem-iterative-preference"
+            ],
+            "correctedInference": "User wants the broad space explored incrementally, one structural slice at a time."
+          }
+        }
+      ],
+      "approvalIds": [],
+      "specialistResults": [
+        {
+          "specialist": "intake-classifier",
+          "summary": "Routed request to projects.general.plan with scoped-co-design mode.",
+          "payload": {
+            "domain": "projects",
+            "subdomain": "general",
+            "requestedOutcome": "plan",
+            "urgency": "low",
+            "confidence": 0.52,
+            "route": "projects.general.plan"
+          }
+        },
+        {
+          "specialist": "context-builder",
+          "summary": "Built a Life_OS context bundle with 0 candidate paths.",
+          "payload": {
+            "sourceOfTruth": "Life_OS",
+            "lifeOsRoot": "/Users/jeff/Life_OS/dev_workspace/Projects/Project_Codex/personalos-core/runtime/life-os",
+            "candidatePaths": [],
+            "notes": [
+              "Route: projects.general.plan",
+              "Mode: scoped-co-design",
+              "Correct inference: User wants the broad space explored incrementally, one structural slice at a time."
+            ],
+            "recentWorkItemIds": [],
+            "memorySummaries": [],
+            "ledgerSnapshot": [
+              "turns=1",
+              "decision=Route work through projects.general.plan",
+              "assumption=User wants the broad space explored incrementally, one structural slice at a time.",
+              "open-question=How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely.",
+              "recovery=Keep the reply to one structural layer."
+            ],
+            "derivedSystems": {
+              "zep": "derived-memory-only",
+              "vectorStore": "derived-index-only"
+            }
+          }
+        },
+        {
+          "specialist": "strategist",
+          "summary": "Prepared a plan plan with 4 next steps.",
+          "payload": {
+            "summary": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+            "nextSteps": [
+              "Constrain the next output to one useful slice before expanding scope.",
+              "Keep the response in scoped-co-design mode.",
+              "Use projects.general.plan as the routing spine for follow-on specialist work.",
+              "Turn the request into prioritized next actions, not a broad manifesto."
+            ],
+            "openQuestions": [
+              "Which slice should be handled first?"
+            ],
+            "assumptions": [
+              "User wants the broad space explored incrementally, one structural slice at a time.",
+              "Primary domain is projects."
+            ]
+          }
+        },
+        {
+          "specialist": "action-coordinator",
+          "summary": "Prepared 2 action proposal(s); 0 require approval.",
+          "payload": [
+            {
+              "id": "55b8bb1f-4291-41cb-9a4b-26ca7d7d75fd",
+              "type": "draft_plan",
+              "status": "proposed",
+              "description": "Produce the primary plan artifact for projects.general.plan.",
+              "rationale": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+              "requiresApproval": false,
+              "artifact": {
+                "nextSteps": [
+                  "Constrain the next output to one useful slice before expanding scope.",
+                  "Keep the response in scoped-co-design mode.",
+                  "Use projects.general.plan as the routing spine for follow-on specialist work.",
+                  "Turn the request into prioritized next actions, not a broad manifesto."
+                ],
+                "openQuestions": [
+                  "Which slice should be handled first?"
+                ],
+                "mode": "scoped-co-design"
+              }
+            },
+            {
+              "id": "b83df886-d0b1-4f62-be34-c2642046ca77",
+              "type": "capture_memory",
+              "status": "proposed",
+              "description": "Capture the interaction assessment and plan as derived memory.",
+              "rationale": "Persist the corrected inference, recovery moves, and routing outcome for continuity.",
+              "requiresApproval": false,
+              "artifact": {
+                "cues": [
+                  "broad-problem-iterative-preference"
+                ],
+                "correctedInference": "User wants the broad space explored incrementally, one structural slice at a time."
+              }
+            }
+          ]
+        }
+      ],
+      "ledger": {
+        "turnCount": 1,
+        "recentInputs": [
+          "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan."
+        ],
+        "interactionHistory": [
+          "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design"
+        ],
+        "decisions": [
+          {
+            "decision": "Route work through projects.general.plan",
+            "reason": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "tradeoff": "Framework avalanche and premature overbuilding.",
+            "revisitTrigger": "Constrain to one slice first.",
+            "at": "2026-04-03T05:32:48.975Z"
+          }
+        ],
+        "assumptions": [
+          {
+            "assumption": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "evidence": "Broad Problem with Iterative Preference",
+            "invalidation": "Treating broad scope as a request for immediate completeness.",
+            "at": "2026-04-03T05:32:48.975Z"
+          }
+        ],
+        "openQuestions": [
+          "How do we avoid: Framework avalanche and premature overbuilding.",
+          "How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely."
+        ],
+        "recoveryHistory": [
+          {
+            "move": "Constrain to one slice first.",
+            "appliedBecause": "When broad scope coexists with iterative language.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "move": "Keep the reply to one structural layer.",
+            "appliedBecause": "When the prompt is broad but still dialogic.",
+            "at": "2026-04-03T05:32:48.975Z"
+          }
+        ]
+      },
+      "responseSummary": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time."
+    },
+    {
+      "id": "6a8c128e-a083-494e-ad04-68efd4037704",
+      "sessionId": "51b31858-2911-44e8-9026-47451ddb7d8c",
+      "userId": "demo-user",
+      "adapter": "local",
+      "input": "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan.",
+      "status": "planned",
+      "createdAt": "2026-04-07T00:33:07.013Z",
+      "updatedAt": "2026-04-07T00:33:07.013Z",
+      "interaction": {
+        "cues": [
+          {
+            "kind": "broad-problem-iterative-preference",
+            "label": "Broad Problem with Iterative Preference",
+            "description": "User names a big space but wants progress in slices.",
+            "evidence": [
+              "rethink",
+              "thread"
+            ],
+            "confidence": 0.9149999999999999
+          }
+        ],
+        "likelyInference": {
+          "summary": "User wants a full architecture or exhaustive framework now.",
+          "rationale": "Broad scope language is easy to over-read as permission for a cathedral answer.",
+          "confidence": 0.9149999999999999,
+          "cueKinds": [
+            "broad-problem-iterative-preference"
+          ]
+        },
+        "correctInference": {
+          "summary": "User wants the broad space explored incrementally, one structural slice at a time.",
+          "rationale": "Correct interpretation is built from the strongest structural cues rather than tone or default completion bias.",
+          "cueKinds": [
+            "broad-problem-iterative-preference"
+          ]
+        },
+        "optimalMode": {
+          "mode": "scoped-co-design",
+          "rationale": "Selected from matched schema cues: scoped-co-design.",
+          "confidence": 0.965
+        },
+        "failureRisks": [
+          {
+            "id": "risk-broad-problem-iterative-preference",
+            "description": "Framework avalanche and premature overbuilding.",
+            "trigger": "Treating broad scope as a request for immediate completeness.",
+            "severity": "high",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          },
+          {
+            "id": "risk-premature-totalization",
+            "description": "The orchestrator may jump from one slice into a full architecture prematurely.",
+            "trigger": "Treating broad scope as permission for total scope completion.",
+            "severity": "high",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          }
+        ],
+        "recoveryMoves": [
+          {
+            "id": "recovery-broad-problem-iterative-preference",
+            "description": "Constrain to one slice first.",
+            "instruction": "Answer with one layer, one map, or one next step, then checkpoint.",
+            "whenToApply": "When broad scope coexists with iterative language.",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          },
+          {
+            "id": "recovery-slice-before-framework",
+            "description": "Keep the reply to one structural layer.",
+            "instruction": "Constrain the response to one layer, one map, or one decision before proposing broader architecture.",
+            "whenToApply": "When the prompt is broad but still dialogic.",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          }
+        ],
+        "summary": "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design"
+      },
+      "normalizedIntent": {
+        "domain": "projects",
+        "subdomain": "general",
+        "requestedOutcome": "plan",
+        "urgency": "low",
+        "confidence": 0.52,
+        "route": "projects.general.plan"
+      },
+      "context": {
+        "sourceOfTruth": "Life_OS",
+        "lifeOsRoot": "/Users/jeff/Life_OS/05_Projects/personalos-core/runtime/life-os",
+        "candidatePaths": [],
+        "notes": [
+          "Route: projects.general.plan",
+          "Mode: scoped-co-design",
+          "Correct inference: User wants the broad space explored incrementally, one structural slice at a time."
+        ],
+        "recentWorkItemIds": [
+          "87d9e89e-3f68-4aed-a22c-8c11dc8e691f"
+        ],
+        "memorySummaries": [
+          "Captured corrected inference for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time."
+        ],
+        "ledgerSnapshot": [
+          "turns=2",
+          "decision=Route work through projects.general.plan",
+          "assumption=User wants the broad space explored incrementally, one structural slice at a time.",
+          "open-question=How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely.",
+          "recovery=Keep the reply to one structural layer."
+        ],
+        "derivedSystems": {
+          "zep": "derived-memory-only",
+          "vectorStore": "derived-index-only"
+        }
+      },
+      "actionProposals": [
+        {
+          "id": "a98931a8-4ab0-46b8-90ad-28b47a7d9f3e",
+          "type": "draft_plan",
+          "status": "proposed",
+          "description": "Produce the primary plan artifact for projects.general.plan.",
+          "rationale": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+          "requiresApproval": false,
+          "artifact": {
+            "nextSteps": [
+              "Constrain the next output to one useful slice before expanding scope.",
+              "Keep the response in scoped-co-design mode.",
+              "Use projects.general.plan as the routing spine for follow-on specialist work.",
+              "Turn the request into prioritized next actions, not a broad manifesto."
+            ],
+            "openQuestions": [
+              "Which slice should be handled first?"
+            ],
+            "mode": "scoped-co-design"
+          }
+        },
+        {
+          "id": "54c619e7-1ea1-4069-a249-3a717738eec9",
+          "type": "capture_memory",
+          "status": "proposed",
+          "description": "Capture the interaction assessment and plan as derived memory.",
+          "rationale": "Persist the corrected inference, recovery moves, and routing outcome for continuity.",
+          "requiresApproval": false,
+          "artifact": {
+            "cues": [
+              "broad-problem-iterative-preference"
+            ],
+            "correctedInference": "User wants the broad space explored incrementally, one structural slice at a time."
+          }
+        }
+      ],
+      "approvalIds": [],
+      "specialistResults": [
+        {
+          "specialist": "intake-classifier",
+          "summary": "Routed request to projects.general.plan with scoped-co-design mode.",
+          "payload": {
+            "domain": "projects",
+            "subdomain": "general",
+            "requestedOutcome": "plan",
+            "urgency": "low",
+            "confidence": 0.52,
+            "route": "projects.general.plan"
+          }
+        },
+        {
+          "specialist": "context-builder",
+          "summary": "Built a Life_OS context bundle with 0 candidate paths.",
+          "payload": {
+            "sourceOfTruth": "Life_OS",
+            "lifeOsRoot": "/Users/jeff/Life_OS/05_Projects/personalos-core/runtime/life-os",
+            "candidatePaths": [],
+            "notes": [
+              "Route: projects.general.plan",
+              "Mode: scoped-co-design",
+              "Correct inference: User wants the broad space explored incrementally, one structural slice at a time."
+            ],
+            "recentWorkItemIds": [
+              "87d9e89e-3f68-4aed-a22c-8c11dc8e691f"
+            ],
+            "memorySummaries": [
+              "Captured corrected inference for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time."
+            ],
+            "ledgerSnapshot": [
+              "turns=2",
+              "decision=Route work through projects.general.plan",
+              "assumption=User wants the broad space explored incrementally, one structural slice at a time.",
+              "open-question=How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely.",
+              "recovery=Keep the reply to one structural layer."
+            ],
+            "derivedSystems": {
+              "zep": "derived-memory-only",
+              "vectorStore": "derived-index-only"
+            }
+          }
+        },
+        {
+          "specialist": "strategist",
+          "summary": "Prepared a plan plan with 4 next steps.",
+          "payload": {
+            "summary": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+            "nextSteps": [
+              "Constrain the next output to one useful slice before expanding scope.",
+              "Keep the response in scoped-co-design mode.",
+              "Use projects.general.plan as the routing spine for follow-on specialist work.",
+              "Turn the request into prioritized next actions, not a broad manifesto."
+            ],
+            "openQuestions": [
+              "Which slice should be handled first?"
+            ],
+            "assumptions": [
+              "User wants the broad space explored incrementally, one structural slice at a time.",
+              "Primary domain is projects."
+            ]
+          }
+        },
+        {
+          "specialist": "action-coordinator",
+          "summary": "Prepared 2 action proposal(s); 0 require approval.",
+          "payload": [
+            {
+              "id": "a98931a8-4ab0-46b8-90ad-28b47a7d9f3e",
+              "type": "draft_plan",
+              "status": "proposed",
+              "description": "Produce the primary plan artifact for projects.general.plan.",
+              "rationale": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+              "requiresApproval": false,
+              "artifact": {
+                "nextSteps": [
+                  "Constrain the next output to one useful slice before expanding scope.",
+                  "Keep the response in scoped-co-design mode.",
+                  "Use projects.general.plan as the routing spine for follow-on specialist work.",
+                  "Turn the request into prioritized next actions, not a broad manifesto."
+                ],
+                "openQuestions": [
+                  "Which slice should be handled first?"
+                ],
+                "mode": "scoped-co-design"
+              }
+            },
+            {
+              "id": "54c619e7-1ea1-4069-a249-3a717738eec9",
+              "type": "capture_memory",
+              "status": "proposed",
+              "description": "Capture the interaction assessment and plan as derived memory.",
+              "rationale": "Persist the corrected inference, recovery moves, and routing outcome for continuity.",
+              "requiresApproval": false,
+              "artifact": {
+                "cues": [
+                  "broad-problem-iterative-preference"
+                ],
+                "correctedInference": "User wants the broad space explored incrementally, one structural slice at a time."
+              }
+            }
+          ]
+        }
+      ],
+      "ledger": {
+        "turnCount": 2,
+        "recentInputs": [
+          "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan.",
+          "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan."
+        ],
+        "interactionHistory": [
+          "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design",
+          "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design"
+        ],
+        "decisions": [
+          {
+            "decision": "Route work through projects.general.plan",
+            "reason": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "tradeoff": "Framework avalanche and premature overbuilding.",
+            "revisitTrigger": "Constrain to one slice first.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "decision": "Route work through projects.general.plan",
+            "reason": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "tradeoff": "Framework avalanche and premature overbuilding.",
+            "revisitTrigger": "Constrain to one slice first.",
+            "at": "2026-04-07T00:33:07.013Z"
+          }
+        ],
+        "assumptions": [
+          {
+            "assumption": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "evidence": "Broad Problem with Iterative Preference",
+            "invalidation": "Treating broad scope as a request for immediate completeness.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "assumption": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "evidence": "Broad Problem with Iterative Preference",
+            "invalidation": "Treating broad scope as a request for immediate completeness.",
+            "at": "2026-04-07T00:33:07.013Z"
+          }
+        ],
+        "openQuestions": [
+          "How do we avoid: Framework avalanche and premature overbuilding.",
+          "How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely."
+        ],
+        "recoveryHistory": [
+          {
+            "move": "Constrain to one slice first.",
+            "appliedBecause": "When broad scope coexists with iterative language.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "move": "Keep the reply to one structural layer.",
+            "appliedBecause": "When the prompt is broad but still dialogic.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "move": "Constrain to one slice first.",
+            "appliedBecause": "When broad scope coexists with iterative language.",
+            "at": "2026-04-07T00:33:07.013Z"
+          },
+          {
+            "move": "Keep the reply to one structural layer.",
+            "appliedBecause": "When the prompt is broad but still dialogic.",
+            "at": "2026-04-07T00:33:07.013Z"
+          }
+        ]
+      },
+      "responseSummary": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time."
+    },
+    {
+      "id": "93fd8008-cd60-4779-9894-96161ff59877",
+      "sessionId": "51b31858-2911-44e8-9026-47451ddb7d8c",
+      "userId": "demo-user",
+      "adapter": "local",
+      "input": "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan.",
+      "status": "planned",
+      "createdAt": "2026-04-10T00:01:37.964Z",
+      "updatedAt": "2026-04-10T00:01:37.965Z",
+      "interaction": {
+        "cues": [
+          {
+            "kind": "broad-problem-iterative-preference",
+            "label": "Broad Problem with Iterative Preference",
+            "description": "User names a big space but wants progress in slices.",
+            "evidence": [
+              "rethink",
+              "thread"
+            ],
+            "confidence": 0.9149999999999999
+          }
+        ],
+        "likelyInference": {
+          "summary": "User wants a full architecture or exhaustive framework now.",
+          "rationale": "Broad scope language is easy to over-read as permission for a cathedral answer.",
+          "confidence": 0.9149999999999999,
+          "cueKinds": [
+            "broad-problem-iterative-preference"
+          ]
+        },
+        "correctInference": {
+          "summary": "User wants the broad space explored incrementally, one structural slice at a time.",
+          "rationale": "Correct interpretation is built from the strongest structural cues rather than tone or default completion bias.",
+          "cueKinds": [
+            "broad-problem-iterative-preference"
+          ]
+        },
+        "optimalMode": {
+          "mode": "scoped-co-design",
+          "rationale": "Selected from matched schema cues: scoped-co-design.",
+          "confidence": 0.965
+        },
+        "failureRisks": [
+          {
+            "id": "risk-broad-problem-iterative-preference",
+            "description": "Framework avalanche and premature overbuilding.",
+            "trigger": "Treating broad scope as a request for immediate completeness.",
+            "severity": "high",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          },
+          {
+            "id": "risk-premature-totalization",
+            "description": "The orchestrator may jump from one slice into a full architecture prematurely.",
+            "trigger": "Treating broad scope as permission for total scope completion.",
+            "severity": "high",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          }
+        ],
+        "recoveryMoves": [
+          {
+            "id": "recovery-broad-problem-iterative-preference",
+            "description": "Constrain to one slice first.",
+            "instruction": "Answer with one layer, one map, or one next step, then checkpoint.",
+            "whenToApply": "When broad scope coexists with iterative language.",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          },
+          {
+            "id": "recovery-slice-before-framework",
+            "description": "Keep the reply to one structural layer.",
+            "instruction": "Constrain the response to one layer, one map, or one decision before proposing broader architecture.",
+            "whenToApply": "When the prompt is broad but still dialogic.",
+            "cueKinds": [
+              "broad-problem-iterative-preference"
+            ]
+          }
+        ],
+        "summary": "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design"
+      },
+      "normalizedIntent": {
+        "domain": "projects",
+        "subdomain": "general",
+        "requestedOutcome": "plan",
+        "urgency": "low",
+        "confidence": 0.52,
+        "route": "projects.general.plan"
+      },
+      "context": {
+        "sourceOfTruth": "Life_OS",
+        "lifeOsRoot": "/Users/jeff/Life_OS/05_Projects/personalos-core/runtime/life-os",
+        "candidatePaths": [],
+        "notes": [
+          "Route: projects.general.plan",
+          "Mode: scoped-co-design",
+          "Correct inference: User wants the broad space explored incrementally, one structural slice at a time."
+        ],
+        "recentWorkItemIds": [
+          "6a8c128e-a083-494e-ad04-68efd4037704",
+          "87d9e89e-3f68-4aed-a22c-8c11dc8e691f"
+        ],
+        "memorySummaries": [
+          "Captured corrected inference for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+          "Captured corrected inference for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time."
+        ],
+        "ledgerSnapshot": [
+          "turns=3",
+          "decision=Route work through projects.general.plan",
+          "assumption=User wants the broad space explored incrementally, one structural slice at a time.",
+          "open-question=How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely.",
+          "recovery=Keep the reply to one structural layer."
+        ],
+        "derivedSystems": {
+          "zep": "derived-memory-only",
+          "vectorStore": "derived-index-only"
+        }
+      },
+      "actionProposals": [
+        {
+          "id": "29221d5f-3a99-4625-92c6-b76577d46e76",
+          "type": "draft_plan",
+          "status": "proposed",
+          "description": "Produce the primary plan artifact for projects.general.plan.",
+          "rationale": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+          "requiresApproval": false,
+          "artifact": {
+            "nextSteps": [
+              "Constrain the next output to one useful slice before expanding scope.",
+              "Keep the response in scoped-co-design mode.",
+              "Use projects.general.plan as the routing spine for follow-on specialist work.",
+              "Turn the request into prioritized next actions, not a broad manifesto."
+            ],
+            "openQuestions": [
+              "Which slice should be handled first?"
+            ],
+            "mode": "scoped-co-design"
+          }
+        },
+        {
+          "id": "5878fa68-ce50-439e-b8ba-5894d3c00414",
+          "type": "capture_memory",
+          "status": "proposed",
+          "description": "Capture the interaction assessment and plan as derived memory.",
+          "rationale": "Persist the corrected inference, recovery moves, and routing outcome for continuity.",
+          "requiresApproval": false,
+          "artifact": {
+            "cues": [
+              "broad-problem-iterative-preference"
+            ],
+            "correctedInference": "User wants the broad space explored incrementally, one structural slice at a time."
+          }
+        }
+      ],
+      "approvalIds": [],
+      "specialistResults": [
+        {
+          "specialist": "intake-classifier",
+          "summary": "Routed request to projects.general.plan with scoped-co-design mode.",
+          "payload": {
+            "domain": "projects",
+            "subdomain": "general",
+            "requestedOutcome": "plan",
+            "urgency": "low",
+            "confidence": 0.52,
+            "route": "projects.general.plan"
+          }
+        },
+        {
+          "specialist": "context-builder",
+          "summary": "Built a Life_OS context bundle with 0 candidate paths.",
+          "payload": {
+            "sourceOfTruth": "Life_OS",
+            "lifeOsRoot": "/Users/jeff/Life_OS/05_Projects/personalos-core/runtime/life-os",
+            "candidatePaths": [],
+            "notes": [
+              "Route: projects.general.plan",
+              "Mode: scoped-co-design",
+              "Correct inference: User wants the broad space explored incrementally, one structural slice at a time."
+            ],
+            "recentWorkItemIds": [
+              "6a8c128e-a083-494e-ad04-68efd4037704",
+              "87d9e89e-3f68-4aed-a22c-8c11dc8e691f"
+            ],
+            "memorySummaries": [
+              "Captured corrected inference for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+              "Captured corrected inference for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time."
+            ],
+            "ledgerSnapshot": [
+              "turns=3",
+              "decision=Route work through projects.general.plan",
+              "assumption=User wants the broad space explored incrementally, one structural slice at a time.",
+              "open-question=How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely.",
+              "recovery=Keep the reply to one structural layer."
+            ],
+            "derivedSystems": {
+              "zep": "derived-memory-only",
+              "vectorStore": "derived-index-only"
+            }
+          }
+        },
+        {
+          "specialist": "strategist",
+          "summary": "Prepared a plan plan with 4 next steps.",
+          "payload": {
+            "summary": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+            "nextSteps": [
+              "Constrain the next output to one useful slice before expanding scope.",
+              "Keep the response in scoped-co-design mode.",
+              "Use projects.general.plan as the routing spine for follow-on specialist work.",
+              "Turn the request into prioritized next actions, not a broad manifesto."
+            ],
+            "openQuestions": [
+              "Which slice should be handled first?"
+            ],
+            "assumptions": [
+              "User wants the broad space explored incrementally, one structural slice at a time.",
+              "Primary domain is projects."
+            ]
+          }
+        },
+        {
+          "specialist": "action-coordinator",
+          "summary": "Prepared 2 action proposal(s); 0 require approval.",
+          "payload": [
+            {
+              "id": "29221d5f-3a99-4625-92c6-b76577d46e76",
+              "type": "draft_plan",
+              "status": "proposed",
+              "description": "Produce the primary plan artifact for projects.general.plan.",
+              "rationale": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+              "requiresApproval": false,
+              "artifact": {
+                "nextSteps": [
+                  "Constrain the next output to one useful slice before expanding scope.",
+                  "Keep the response in scoped-co-design mode.",
+                  "Use projects.general.plan as the routing spine for follow-on specialist work.",
+                  "Turn the request into prioritized next actions, not a broad manifesto."
+                ],
+                "openQuestions": [
+                  "Which slice should be handled first?"
+                ],
+                "mode": "scoped-co-design"
+              }
+            },
+            {
+              "id": "5878fa68-ce50-439e-b8ba-5894d3c00414",
+              "type": "capture_memory",
+              "status": "proposed",
+              "description": "Capture the interaction assessment and plan as derived memory.",
+              "rationale": "Persist the corrected inference, recovery moves, and routing outcome for continuity.",
+              "requiresApproval": false,
+              "artifact": {
+                "cues": [
+                  "broad-problem-iterative-preference"
+                ],
+                "correctedInference": "User wants the broad space explored incrementally, one structural slice at a time."
+              }
+            }
+          ]
+        }
+      ],
+      "ledger": {
+        "turnCount": 3,
+        "recentInputs": [
+          "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan.",
+          "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan.",
+          "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan."
+        ],
+        "interactionHistory": [
+          "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design",
+          "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design",
+          "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design"
+        ],
+        "decisions": [
+          {
+            "decision": "Route work through projects.general.plan",
+            "reason": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "tradeoff": "Framework avalanche and premature overbuilding.",
+            "revisitTrigger": "Constrain to one slice first.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "decision": "Route work through projects.general.plan",
+            "reason": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "tradeoff": "Framework avalanche and premature overbuilding.",
+            "revisitTrigger": "Constrain to one slice first.",
+            "at": "2026-04-07T00:33:07.013Z"
+          },
+          {
+            "decision": "Route work through projects.general.plan",
+            "reason": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "tradeoff": "Framework avalanche and premature overbuilding.",
+            "revisitTrigger": "Constrain to one slice first.",
+            "at": "2026-04-10T00:01:37.964Z"
+          }
+        ],
+        "assumptions": [
+          {
+            "assumption": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "evidence": "Broad Problem with Iterative Preference",
+            "invalidation": "Treating broad scope as a request for immediate completeness.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "assumption": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "evidence": "Broad Problem with Iterative Preference",
+            "invalidation": "Treating broad scope as a request for immediate completeness.",
+            "at": "2026-04-07T00:33:07.013Z"
+          },
+          {
+            "assumption": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "evidence": "Broad Problem with Iterative Preference",
+            "invalidation": "Treating broad scope as a request for immediate completeness.",
+            "at": "2026-04-10T00:01:37.964Z"
+          }
+        ],
+        "openQuestions": [
+          "How do we avoid: Framework avalanche and premature overbuilding.",
+          "How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely."
+        ],
+        "recoveryHistory": [
+          {
+            "move": "Constrain to one slice first.",
+            "appliedBecause": "When broad scope coexists with iterative language.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "move": "Keep the reply to one structural layer.",
+            "appliedBecause": "When the prompt is broad but still dialogic.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "move": "Constrain to one slice first.",
+            "appliedBecause": "When broad scope coexists with iterative language.",
+            "at": "2026-04-07T00:33:07.013Z"
+          },
+          {
+            "move": "Keep the reply to one structural layer.",
+            "appliedBecause": "When the prompt is broad but still dialogic.",
+            "at": "2026-04-07T00:33:07.013Z"
+          },
+          {
+            "move": "Constrain to one slice first.",
+            "appliedBecause": "When broad scope coexists with iterative language.",
+            "at": "2026-04-10T00:01:37.964Z"
+          },
+          {
+            "move": "Keep the reply to one structural layer.",
+            "appliedBecause": "When the prompt is broad but still dialogic.",
+            "at": "2026-04-10T00:01:37.964Z"
+          }
+        ]
+      },
+      "responseSummary": "Chief-of-staff plan for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time."
+    }
+  ],
+  "approvals": [],
+  "executions": [],
+  "reflections": [
+    {
+      "id": "bcaa7f6d-4d66-4124-a2b1-14f01a9e37db",
+      "workItemId": "87d9e89e-3f68-4aed-a22c-8c11dc8e691f",
+      "userId": "demo-user",
+      "kind": "continuity",
+      "summary": "Captured corrected inference for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+      "signals": [
+        "scoped-co-design",
+        "broad-problem-iterative-preference"
+      ],
+      "createdAt": "2026-04-03T05:32:48.976Z"
+    },
+    {
+      "id": "4e27043e-dd45-4394-9872-526d1592c4ec",
+      "workItemId": "6a8c128e-a083-494e-ad04-68efd4037704",
+      "userId": "demo-user",
+      "kind": "continuity",
+      "summary": "Captured corrected inference for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+      "signals": [
+        "scoped-co-design",
+        "broad-problem-iterative-preference"
+      ],
+      "createdAt": "2026-04-07T00:33:07.013Z"
+    },
+    {
+      "id": "60ff3d99-a908-4967-b94e-40a1a026be13",
+      "workItemId": "93fd8008-cd60-4779-9894-96161ff59877",
+      "userId": "demo-user",
+      "kind": "continuity",
+      "summary": "Captured corrected inference for projects.general.plan: User wants the broad space explored incrementally, one structural slice at a time.",
+      "signals": [
+        "scoped-co-design",
+        "broad-problem-iterative-preference"
+      ],
+      "createdAt": "2026-04-10T00:01:37.965Z"
+    }
+  ],
+  "ledgers": [
+    {
+      "userId": "demo-user",
+      "ledger": {
+        "turnCount": 3,
+        "recentInputs": [
+          "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan.",
+          "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan.",
+          "Help me rethink my whole Personal OS, but let's pull on one thread first and turn it into a useful plan."
+        ],
+        "interactionHistory": [
+          "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design",
+          "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design",
+          "Likely misread: User wants a full architecture or exhaustive framework now. Correct read: User wants the broad space explored incrementally, one structural slice at a time. Chosen mode: scoped-co-design"
+        ],
+        "decisions": [
+          {
+            "decision": "Route work through projects.general.plan",
+            "reason": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "tradeoff": "Framework avalanche and premature overbuilding.",
+            "revisitTrigger": "Constrain to one slice first.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "decision": "Route work through projects.general.plan",
+            "reason": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "tradeoff": "Framework avalanche and premature overbuilding.",
+            "revisitTrigger": "Constrain to one slice first.",
+            "at": "2026-04-07T00:33:07.013Z"
+          },
+          {
+            "decision": "Route work through projects.general.plan",
+            "reason": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "tradeoff": "Framework avalanche and premature overbuilding.",
+            "revisitTrigger": "Constrain to one slice first.",
+            "at": "2026-04-10T00:01:37.964Z"
+          }
+        ],
+        "assumptions": [
+          {
+            "assumption": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "evidence": "Broad Problem with Iterative Preference",
+            "invalidation": "Treating broad scope as a request for immediate completeness.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "assumption": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "evidence": "Broad Problem with Iterative Preference",
+            "invalidation": "Treating broad scope as a request for immediate completeness.",
+            "at": "2026-04-07T00:33:07.013Z"
+          },
+          {
+            "assumption": "User wants the broad space explored incrementally, one structural slice at a time.",
+            "evidence": "Broad Problem with Iterative Preference",
+            "invalidation": "Treating broad scope as a request for immediate completeness.",
+            "at": "2026-04-10T00:01:37.964Z"
+          }
+        ],
+        "openQuestions": [
+          "How do we avoid: Framework avalanche and premature overbuilding.",
+          "How do we avoid: The orchestrator may jump from one slice into a full architecture prematurely."
+        ],
+        "recoveryHistory": [
+          {
+            "move": "Constrain to one slice first.",
+            "appliedBecause": "When broad scope coexists with iterative language.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "move": "Keep the reply to one structural layer.",
+            "appliedBecause": "When the prompt is broad but still dialogic.",
+            "at": "2026-04-03T05:32:48.975Z"
+          },
+          {
+            "move": "Constrain to one slice first.",
+            "appliedBecause": "When broad scope coexists with iterative language.",
+            "at": "2026-04-07T00:33:07.013Z"
+          },
+          {
+            "move": "Keep the reply to one structural layer.",
+            "appliedBecause": "When the prompt is broad but still dialogic.",
+            "at": "2026-04-07T00:33:07.013Z"
+          },
+          {
+            "move": "Constrain to one slice first.",
+            "appliedBecause": "When broad scope coexists with iterative language.",
+            "at": "2026-04-10T00:01:37.964Z"
+          },
+          {
+            "move": "Keep the reply to one structural layer.",
+            "appliedBecause": "When the prompt is broad but still dialogic.",
+            "at": "2026-04-10T00:01:37.964Z"
+          }
+        ]
+      },
+      "updatedAt": "2026-04-10T00:01:37.965Z"
+    }
+  ]
+}

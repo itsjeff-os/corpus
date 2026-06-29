@@ -1,0 +1,119 @@
+Homelab Overview (State Snapshot)
+
+Access
+	•	Mac → Mini server SSH
+	•	SSH config entry in ~/.ssh/config:
+
+Host servers
+    HostName 192.168.1.39
+    User sysadmin
+
+
+	•	Zsh alias in ~/.zshrc on Mac:
+
+alias homelab='ssh servers'
+
+
+	•	Result: running homelab on the Mac opens an  SSH session to the mini server as sysadmin@servers.
+
+⸻
+
+Mini Server (Ubuntu) – Core Stacks
+
+Home Assistant
+	•	Path: /srv/homeassistant
+	•	Compose: /srv/homeassistant/docker-compose.yml
+	•	Container name: homeassistantz
+	•	Network: network_mode: host (available on http://<server-ip>:8123)
+	•	Data: /srv/homeassistant/config (bind-mounted as /config in the container)
+
+Portainer
+	•	Path: /srv/infra/portainer
+	•	Compose: /srv/infra/portainer/docker-compose.yml
+	•	Container name: portainer
+	•	Ports:
+	•	9000 (HTTP)
+	•	9443 (HTTPS)
+	•	Data: Docker volume portainer_data mounted at /data inside the container.
+
+Database – home_auto_db
+	•	Container name: home_auto_db
+	•	Image: postgres:16
+	•	Ports: 55432 on host → 5432 in container
+	•	Purpose: HA/entities/devices/flat layout DB for future automations.
+	•	Data: Docker volume under /var/lib/docker/volumes/... (see CLI canvas for inspect command).
+
+⸻
+
+Parked / Legacy
+	•	Local Zep experiment
+	•	Historical stack under /srv/ai-stack (Postgres 15 + Zep).
+	•	Containers stopped and removed.
+	•	Directory archived as ai-stack-legacy-*.tar.gz under /srv.
+	•	gpt-server-agent / ultra-env
+	•	Path: /home/sysadmin/gpt-server-agent/ultra-env
+	•	Containers ultra_db and ultra_api are stopped/removed.
+	•	Status: parked dev project; not part of current homelab runtime.
+
+⸻
+
+Conventions & Protocols
+
+Ownership / workspace
+	•	/srv is owned by sysadmin:sysadmin and treated as the primary workspace for services.
+
+New Stack Protocol (NSP)
+
+When adding a new long-lived stack:
+	1.	Location
+	•	Apps: /srv/apps/<name>/
+	•	Infra/glue: /srv/infra/<name>/
+	2.	Scaffold
+	•	Create the folder under /srv/....
+	•	Add docker-compose.yml with service name, image/build, ports, volumes.
+	•	Add README.md with purpose, start/stop commands, ports/URLs, and dependencies.
+	3.	Aliases (in ~/.bash_aliases)
+	•	cd-<name> → cd /srv/.../<name>
+	•	<name>-up → cd /srv/.../<name> && docker compose up -d
+	•	<name>-down → cd /srv/.../<name> && docker compose down
+	•	<name>-logs → docker logs -f <container_name>
+	4.	Docs / CLI
+	•	Add a row to HOMELAB.md under Stacks.
+	•	Add core commands to the Homelab CLI Canvas (and optionally HOMELAB_CLI.md).
+
+⸻
+
+Homelab CLI (server) – Summary
+
+Defined in ~/.bash_aliases on the mini server:
+
+# Docker overviews
+alias dps='docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"'
+alias dps-a='docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"'
+
+# Quick navigation
+alias cd-srv='cd /srv'
+alias cd-ha='cd /srv/homeassistant'
+alias cd-infra='cd /srv/infra'
+alias cd-port='cd /srv/infra/portainer'
+
+# Home Assistant helpers
+alias ha-logs='docker logs -f homeassistant'
+alias ha-up='cd /srv/homeassistant && docker compose up -d'
+alias ha-down='cd /srv/homeassistant && docker compose down'
+
+# Portainer helpers
+alias port-up='cd /srv/infra/portainer && docker compose up -d'
+alias port-down='cd /srv/infra/portainer && docker compose down'
+
+See the separate Homelab CLI Canvas for detailed patterns and explanations.
+
+⸻
+
+Dev Archive (Mac)
+	•	Local dev folder: /Users/jeff/dev
+	•	Git repo initialised with .gitignore to exclude node_modules/, venvs, zips, etc.
+	•	Remote: git@github.com:dho1GH/Itsjeff-dev-archive.git
+	•	Purpose: archive of old experiments (e.g. gpt-assistant, assistant-system, scripts) for later mining in a separate ChatGPT session.
+
+This document is a snapshot of the current known state; new stacks and changes should update this overview and the CLI canvas accordingly.

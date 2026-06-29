@@ -1,0 +1,111 @@
+input_number:
+  lighting_global_evening_brightness:
+    name: Global Evening Brightness
+    min: 1
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:weather-sunset
+    mode: slider
+    initial: 55
+
+  lighting_global_night_brightness:
+    name: Global Night Brightness
+    min: 1
+    max: 50
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:weather-night
+    mode: slider
+    initial: 16
+
+  lighting_global_fade_in_seconds:
+    name: Global Fade In (s)
+    min: 0
+    max: 15
+    step: 1
+    unit_of_measurement: s
+    icon: mdi:arrow-collapse-right
+    mode: slider
+    initial: 4
+
+  lighting_global_fade_out_seconds:
+    name: Global Fade Out (s)
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: s
+    icon: mdi:arrow-collapse-left
+    mode: slider
+    initial: 6
+
+  lighting_bedroom_evening_brightness:
+    name: Bedroom Evening Brightness
+    min: 1
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:bed-king
+    mode: slider
+    initial: 40
+
+  lighting_bedroom_night_brightness:
+    name: Bedroom Night Brightness
+    min: 1
+    max: 40
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:bed-king-outline
+    mode: slider
+    initial: 12
+
+  lighting_wardrobe_night_brightness:
+    name: Wardrobe Night Brightness
+    min: 1
+    max: 40
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:wardrobe
+    mode: slider
+    initial: 22
+
+  lighting_bathroom2_night_brightness:
+    name: Bathroom 2 Night Brightness
+    min: 1
+    max: 40
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:shower
+    mode: slider
+    initial: 8
+
+input_datetime:
+  lighting_global_morning_start:
+    name: Morning Starts
+    has_date: false
+    has_time: true
+    icon: mdi:weather-sunset-up
+
+  lighting_global_morning_end:
+    name: Morning Ends
+    has_date: false
+    has_time: true
+    icon: mdi:weather-sunset-up
+
+  lighting_global_evening_start:
+    name: Evening Starts
+    has_date: false
+    has_time: true
+    icon: mdi:weather-sunset
+
+  lighting_global_night_start:
+    name: Night Starts
+    has_date: false
+    has_time: true
+    icon: mdi:weather-night
+
+  lighting_global_night_end:
+    name: Night Ends
+    has_date: false
+    has_time: true
+    icon: mdi:weather-sunny

@@ -1,0 +1,268 @@
+{
+  "meta": {
+    "title": "PSRA / ASA Drop Set A Final Index",
+    "scope": "PSRA / ASA / Execution Broker / artefact-bound build workflow.",
+    "active_count": "19/20 indexed",
+    "closed_at": "19/20 by user decision",
+    "updated_at_utc": "2026-06-09T13:14:24.825690+00:00",
+    "note": "Drop 19 is a bridge/backlink to a future Interaction Governance set, not core canon here."
+  },
+  "canon_map": {
+    "core_canon": [
+      "4/20",
+      "6/20",
+      "8/20",
+      "10/20",
+      "13/20",
+      "16/20"
+    ],
+    "supporting": [
+      "1/20",
+      "3/20",
+      "5/20",
+      "7/20",
+      "9/20",
+      "11/20",
+      "12/20",
+      "14/20",
+      "18/20"
+    ],
+    "variants_or_historical": [
+      "15/20",
+      "17/20"
+    ],
+    "separate_or_backlink_artifacts": [
+      "2/20",
+      "19/20"
+    ]
+  },
+  "drops": [
+    {
+      "drop": "1/20",
+      "label": "Passive Structural Runtime Audit v1",
+      "role": "protocol",
+      "canon_status": "supporting_base",
+      "family": "PSRA",
+      "what_it_is": "Full PSRA audit prompt/protocol for evidence-bound component-first artefact analysis without fixes, refactors, reconciliation, or advice.",
+      "anchor": "The constraints in this prompt are controls, not content. Do not merely mention them. Enforce them by excluding output that violates them.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "2/20",
+      "label": "Cognitive Substrate Loop Audit",
+      "role": "audit",
+      "canon_status": "standalone_separate_artifact",
+      "family": "Assistant Cognitive Substrate",
+      "what_it_is": "Passive audit writeup of a zipped TypeScript/Node assistant cognitive substrate runtime.",
+      "anchor": "The architecture says “constraints become controls.” The implementation currently mostly says “constraints become model-visible context plus some substring gates.”",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "3/20",
+      "label": "API-first Audit Workflow Architecture",
+      "role": "architecture",
+      "canon_status": "supporting",
+      "family": "PSRA / Platform Access",
+      "what_it_is": "Architecture note for implementing PSRA using an API-first core, MCP/tool interface, n8n orchestration wrapper, optional Custom GPT front-end, and optional multi-pass/multi-agent layers.",
+      "anchor": "Build the brainstem as API. Expose it through MCP. Let n8n move things around. Use Custom GPT as a comfy cockpit. Add multi-agent only where it beats single-agent plus validation.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "4/20",
+      "label": "PSRA v1.1 Invocation Contract",
+      "role": "invocation_contract",
+      "canon_status": "canonical",
+      "family": "PSRA",
+      "what_it_is": "Named workflow call pattern for invoking PSRA without pasting the full prompt each time.",
+      "anchor": "PSRA this, component-first, as-written, no fixes.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "5/20",
+      "label": "Dynamic PSRA Cloudflare Workflow Definition",
+      "role": "architecture",
+      "canon_status": "supporting",
+      "family": "PSRA / Cloudflare",
+      "what_it_is": "Architecture note for making PSRA a manifest-driven, stateful, versioned Cloudflare Workflow.",
+      "anchor": "Make PSRA a dynamic workflow definition, not a static mega-prompt.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "6/20",
+      "label": "PSRA v1.1 Optimized Prompt",
+      "role": "optimized_prompt",
+      "canon_status": "canonical",
+      "family": "PSRA",
+      "what_it_is": "Shorter, stricter PSRA v1.1 prompt with non-negotiable controls, priority order, materiality rule, fixed audit workflow, and silent self-check rejection conditions.",
+      "anchor": "Those two lines make the prompt behave less like a writing brief and more like a gate.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "7/20",
+      "label": "PSRA Capability Upgrade Ladder",
+      "role": "expansion",
+      "canon_status": "supporting",
+      "family": "PSRA",
+      "what_it_is": "Capability design note for making PSRA more intelligent through phase-specific passes, artefact graph/state, validators, materiality scoring, evidence references, capability profiles, regression memory, audit trace, and human promotion boundaries while preserving the passive audit invariant.",
+      "anchor": "That is how PSRA grows teeth without growing hands.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "8/20",
+      "label": "PSRA Dynamic Workflow Codex Build Schema",
+      "role": "implementation_contract",
+      "canon_status": "canonical",
+      "family": "PSRA / Codex / Cloudflare",
+      "what_it_is": "Codex-ready build contract for implementing PSRA v1.1 as a Cloudflare-hosted, manifest-driven, stateful workflow runner with API endpoints, Durable Object run state, R2, Supabase, structured phase outputs, validators, tests, security boundaries, and definition of done.",
+      "anchor": "Schema accepted. Debate closed. Build exactly this.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "9/20",
+      "label": "Governed AI Build Operating Model",
+      "role": "operating_model",
+      "canon_status": "supporting",
+      "family": "Personal OS / Execution Fidelity",
+      "what_it_is": "Structural read of the missing middle layer between AI-use philosophy and the Cloudflare/PSRA build schema, with execution mode headers as the key missing control.",
+      "anchor": "Faithful execution is mode-dependent.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "10/20",
+      "label": "Execution Broker Codex Boundary",
+      "role": "bridge",
+      "canon_status": "canonical",
+      "family": "Execution Broker / Codex",
+      "what_it_is": "Middle Execution Broker layer between collaborative planning and Codex execution, compiling exploration into bounded implementation tickets.",
+      "anchor": "Codex does not receive the conversation. Codex receives the decision.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "11/20",
+      "label": "Personal OS Temp Chat Salvage Pack",
+      "role": "salvage",
+      "canon_status": "supporting",
+      "family": "Personal OS / Carry-forward",
+      "what_it_is": "Carry-forward salvage summary of useful artefacts from a temp chat.",
+      "anchor": "Build systems where your decisions become operational state, not conversational suggestions.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "12/20",
+      "label": "Artefact-Bound Operational State",
+      "role": "principle",
+      "canon_status": "supporting",
+      "family": "Personal OS / Artefact Governance",
+      "what_it_is": "Operating principle for externalizing decisions, constraints, execution scope, audit results, accepted schemas, runtime capability, and open ambiguity into artefacts.",
+      "anchor": "Anything the system must not distort should be externalized into an artefact before it becomes actionable.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "13/20",
+      "label": "ASA v0.1 Actual State Audit",
+      "role": "sibling_workflow",
+      "canon_status": "canonical",
+      "family": "ASA / PSRA / Personal OS audit layer",
+      "what_it_is": "Sibling workflow to PSRA for producing an evidence-bound snapshot of actual system, repo, infrastructure, service, deployment, automation, and loose-component state.",
+      "anchor": "Before fixing the system, produce an artefact the system can be held to.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "14/20",
+      "label": "ASA Codex Implementation Path",
+      "role": "implementation_path",
+      "canon_status": "supporting_expansion",
+      "family": "ASA / Execution Broker / Codex",
+      "what_it_is": "Implementation plan for ASA that keeps Codex in the execution layer only while ChatGPT/Claude handle audit interpretation and user approval remains the control point.",
+      "anchor": "Codex should build the audit machine, not decide what the messy system means.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "15/20",
+      "label": "ASA Local-First Codex Build Path",
+      "role": "variant",
+      "canon_status": "rejected_initially",
+      "family": "ASA / Codex / Execution Broker",
+      "what_it_is": "Local-first ASA implementation path that proposes starting with a read-only TypeScript CLI collector before later Cloudflare deployment.",
+      "anchor": "Schema accepted. Debate closed. Build ticket 1 only.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "16/20",
+      "label": "ASA Deployed-First Intake Worker Build Path",
+      "role": "implementation_contract",
+      "canon_status": "canonical",
+      "family": "ASA / Cloudflare / Codex / Execution Broker",
+      "what_it_is": "Preferred deployed-first ASA implementation path where Codex builds a Cloudflare Worker evidence intake/control surface first, with staging deploy, HTTP smoke tests, R2/Supabase storage, snapshot/report endpoints, and GitHub Action evidence sender.",
+      "anchor": "Build deployed ASA intake Worker. Deploy to staging. Prove it with remote smoke tests.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "17/20",
+      "label": "ASA as JeffeOS Runtime Capability",
+      "role": "salvage / speculative_variant / background_context",
+      "canon_status": "not_canonical_preserve_for_review",
+      "family": "ASA / JeffeOS Runtime Substrate / Capability Graph",
+      "what_it_is": "Alternative ASA framing where ASA is registered as a read-only capability inside the existing JeffeOS runtime substrate instead of built as a standalone intake surface first.",
+      "anchor": "Do not build a standalone ASA system. Register ASA as a governed capability/lane in the existing graph-governed runtime.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "18/20",
+      "label": "ASA JeffeOS Compatibility Correction",
+      "role": "context / correction / supporting",
+      "canon_status": "supporting_clarification",
+      "family": "ASA / JeffeOS Runtime Substrate / Deployed-First Implementation",
+      "what_it_is": "Correction to Drop 17: JeffeOS substrate should inform ASA design and prevent duplicate control-plane structures, but ASA should not necessarily be embedded immediately as a runtime capability.",
+      "anchor": "Build ASA deployed-first, but design it so it can later become a first-class runtime capability without duplicating JeffeOS control-plane structures.",
+      "status": "indexed",
+      "carry_forward": true
+    },
+    {
+      "drop": "19/20",
+      "label": "Stateful Constraint Installation",
+      "role": "bridge / principle / diagnostic",
+      "canon_status": "separate_family_carry_forward",
+      "family": "Interaction Governance / Constraint Enforcement",
+      "what_it_is": "Principle and derived control layer for turning recognized constraints into installed controls before rendering; belongs mainly to a future Interaction Governance set, preserved here as backlink/supporting background.",
+      "anchor": "The user says a constraint. The system must not merely understand it. It must install it.",
+      "status": "indexed",
+      "carry_forward": true
+    }
+  ],
+  "duplicates": [
+    {
+      "duplicate": "Cognitive Substrate Loop Audit repeat",
+      "of": "2/20"
+    },
+    {
+      "duplicate": "PSRA v1.1 Optimized Prompt repeat",
+      "of": "6/20"
+    },
+    {
+      "duplicate": "Passive Structural Runtime Audit v1 repeat",
+      "of": "1/20"
+    },
+    {
+      "duplicate": "Wrong-source Stateful Constraint Installation capture",
+      "of": "replaced by corrected 19/20"
+    }
+  ]
+}

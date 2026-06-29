@@ -1,0 +1,11 @@
+{
+  "name": "chatgpt-search-fetch-starter",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "check": "node --check src/server.js",
+    "smoke": "node scripts/smoke.mjs"
+  }
+}

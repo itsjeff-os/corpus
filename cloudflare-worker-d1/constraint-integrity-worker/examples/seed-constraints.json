@@ -1,0 +1,22 @@
+{
+  "constraints": [
+    {
+      "id": "C1",
+      "type": "prohibition",
+      "target": "manual_categorisation",
+      "description": "Do not require manual categorisation"
+    },
+    {
+      "id": "C2",
+      "type": "prohibition",
+      "target": "placement_decisions",
+      "description": "Do not require placement decisions"
+    },
+    {
+      "id": "C3",
+      "type": "prohibition",
+      "target": "multi_location_workflow",
+      "description": "Do not require separate work and storage locations"
+    }
+  ]
+}

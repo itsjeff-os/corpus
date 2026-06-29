@@ -1,0 +1,15 @@
+services:
+  runtime-core-v1:
+    build: .
+    container_name: runtime-core-v1
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5061:5061"
+    networks:
+      - lifeos-graph
+
+networks:
+  lifeos-graph:
+    external: true

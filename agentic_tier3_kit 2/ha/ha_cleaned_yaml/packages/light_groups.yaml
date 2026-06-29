@@ -1,0 +1,40 @@
+light:
+  - platform: group
+    name: Bedroom2 Ceiling
+    unique_id: bedroom2_ceiling_group
+    entities:
+      - light.ceiling_bedroom2_tl
+      - light.ceiling_bedroom2_tr
+      - light.ceiling_rear_br
+
+  - platform: group
+    name: Bedroom2 Wardrobe
+    unique_id: bedroom2_wardrobe_group
+    entities:
+      - light.ceiling_wardrobe_left
+      - light.ceiling_wardrobe_right
+
+  - platform: group
+    name: Rear Bathroom Ceiling
+    unique_id: rear_bath_ceiling_group
+    entities:
+      - light.ceiling_rear_bath_bl
+      - light.ceiling_rear_bath_ml
+      - light.ceiling_rear_bath_tl
+      - light.ceiling_rear_bath_tr
+
+  - platform: group
+    name: Hallway Ceiling
+    unique_id: hallway_ceiling_group
+    entities:
+      - light.ceiling_entry_right
+      - light.ceiling_hallway_front
+      - light.ceiling_hallway_rear_1
+      - light.ceiling_hallway_rear_2
+
+  - platform: group
+    name: Entry Lights
+    unique_id: entry_lights_group
+    entities:
+      - light.front_door_ceiling_light
+      - light.entry_gradient_floor_lamp

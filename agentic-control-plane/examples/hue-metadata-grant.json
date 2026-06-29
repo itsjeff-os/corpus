@@ -1,0 +1,11 @@
+{
+  "grantId": "grant_example_hue_metadata",
+  "scope": "APPLY_HUE_METADATA_ONLY",
+  "systems": ["hue"],
+  "allowedOperations": ["metadata_write"],
+  "allowedTargets": ["Beta Bedroom"],
+  "forbiddenSystems": ["home_assistant", "node_red", "homekit", "google_home", "filesystem"],
+  "forbiddenOperations": ["restart", "reload", "delete", "deploy"],
+  "expires": "after_single_execution",
+  "postAuditRequired": true
+}

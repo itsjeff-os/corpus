@@ -1,0 +1,17 @@
+{
+  "proposal": {
+    "solutionClass": "non_placement_stateful_graph",
+    "mechanisms": {
+      "manual_categorisation": false,
+      "placement_decisions": false,
+      "multi_location_workflow": false
+    },
+    "claims": [
+      {
+        "type": "intent_attribution",
+        "evidenceQuote": "Stop forward generation immediately"
+      }
+    ]
+  },
+  "autoban": false
+}

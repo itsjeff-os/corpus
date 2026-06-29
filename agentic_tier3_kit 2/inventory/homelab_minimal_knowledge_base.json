@@ -1,0 +1,124 @@
+{
+  "flat_homelab_knowledge": {
+    "environment": {
+      "dwelling_type": "two_bedroom_flat",
+      "room_codes": ["Core", "Alpha", "Beta", "Throne", "Splash", "Pass", "Chaos"],
+      "constraints": [
+        "Rental property — reversible, non-destructive changes only",
+        "All devices share a flat LAN (no VLANs yet)",
+        "Room codes are canonical"
+      ]
+    },
+    "compute": {
+      "primary_server": {
+        "id": "gmktec_n95",
+        "os": "Ubuntu 24.04 LTS",
+        "docker": ["homeassistant"],
+        "status": "clean, minimal, upgrade-ready"
+      }
+    },
+    "network": {
+      "provider": "Hyperoptic (1Gbps, static IP)",
+      "router": "Unifi Cloud Gateway Ultra",
+      "access_point": "Unifi 6+ AP",
+      "topology": "flat",
+      "cloudflare_tunnel": true,
+      "critical_wired": ["Aqara M3", "Mini PC", "Apple TV", "Hue Bridge"]
+    },
+    "home_automation": {
+      "platforms": ["Home Assistant", "Apple HomeKit", "Google Home"],
+      "hubs": ["Aqara M3", "Hue Bridge Pro", "Switchbot Hub 3"],
+      "presence_sensors": ["Aqara FP1E", "FP2"]
+    },
+    "devices": {
+      "approx_count": "80-100",
+      "types": [
+        "motion/contact sensors",
+        "switches/buttons",
+        "window treatments",
+        "air/climate",
+        "media/audio",
+        "health/utility"
+      ]
+    },
+    "agentic_layers": {
+      "L0": ["Home Assistant"],
+      "L1": ["n8n", "Zapier", "IFTTT"],
+      "L2": ["Supabase", "Chroma", "Notion", "GitHub"],
+      "L3": ["ChatGPT Workspace", "OpenAI API"],
+      "L4": ["ChatGPT UI", "Notion Dashboards", "Home Assistant Dashboards"],
+      "L5": ["Lighting OS (planned)", "Automation Writer", "Context Engine"]
+    },
+    "preferences": {
+      "network": "Seamless roaming, minimal latency",
+      "management": "Zero daily intervention",
+      "security": "No VLANs unless compatibility assured",
+      "docker": "Clean state, low clutter"
+    },
+    "service_status": {
+      "home_assistant": "active",
+      "n8n": "active",
+      "supabase": "available",
+      "chroma": "available",
+      "notion": "in_use",
+      "openai_api": "available",
+      "lighting_os": "planned",
+      "automation_writer": "inactive",
+      "context_engine": "planned"
+    },
+    "platform_role_scope_matrix": {
+      "Home Assistant": [
+        "device integration",
+        "local automations",
+        "actuation of sensors, lights, switches",
+        "dashboard visualisation"
+      ],
+      "Apple HomeKit": [
+        "voice control",
+        "privacy-focused device access",
+        "Apple ecosystem integration"
+      ],
+      "Google Home": [
+        "voice control",
+        "Google ecosystem integrations",
+        "passive media state feedback"
+      ],
+      "n8n": [
+        "orchestration of cross-platform flows",
+        "intent interpretation",
+        "AI-assisted automation deployment",
+        "API/webhook routing"
+      ],
+      "Zapier": [
+        "low-complexity cross-service triggers",
+        "legacy third-party integration"
+      ],
+      "IFTTT": [
+        "quick glue logic",
+        "simple mobile-accessible triggers"
+      ],
+      "Supabase": [
+        "state persistence",
+        "logging and telemetry",
+        "runtime context storage"
+      ],
+      "Chroma": [
+        "semantic memory",
+        "retrieval of prior configurations or behaviours"
+      ],
+      "Notion": [
+        "human-facing project tracking",
+        "dashboards and design documentation"
+      ],
+      "ChatGPT Workspace": [
+        "design-time reasoning",
+        "architectural planning",
+        "prompt/agent drafting"
+      ],
+      "OpenAI API": [
+        "runtime agent execution",
+        "language model access for automation pipeline"
+      ]
+    }
+  }
+}

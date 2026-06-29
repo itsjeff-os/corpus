@@ -1,0 +1,9 @@
+{
+  "rooms": [
+    {
+      "id": "room.open_plan",
+      "name": "Open Plan",
+      "aliases": ["core"]
+    }
+  ]
+}

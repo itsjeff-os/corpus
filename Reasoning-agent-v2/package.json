@@ -1,0 +1,21 @@
+{
+  "name": "reasoning-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "echo \"lint placeholder\"",
+    "dev:worker": "wrangler dev apps/cloudflare-worker/src/index.ts --config apps/cloudflare-worker/wrangler.toml",
+    "deploy:worker": "wrangler deploy --config apps/cloudflare-worker/wrangler.toml"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "typescript": "latest",
+    "vitest": "latest",
+    "wrangler": "latest"
+  },
+  "dependencies": {
+    "zod": "latest"
+  }
+}

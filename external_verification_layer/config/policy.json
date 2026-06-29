@@ -1,0 +1,13 @@
+{
+  "enforcement_mode": "pragmatic",
+  "high_risk_domains": [
+    "security",
+    "medical",
+    "legal"
+  ],
+  "claim_rules": {
+    "numeric": "require_evidence_or_rewrite",
+    "prevalence": "require_evidence_or_rewrite",
+    "directive": "require_contextual_evidence_or_soften"
+  }
+}

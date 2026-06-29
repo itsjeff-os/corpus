@@ -1,0 +1,16 @@
+{
+	"compatibility_date": "2025-10-08",
+	"main": "src/index.ts",
+	"name": "smexybeast-openapi",
+	"upload_source_maps": true,
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "Smexybeast-db",
+			"database_id": "1012eca1-dd4f-49b5-b091-583d8895f200"
+		}
+	]
+}

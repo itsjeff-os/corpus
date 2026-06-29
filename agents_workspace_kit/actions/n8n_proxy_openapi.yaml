@@ -1,0 +1,69 @@
+openapi: 3.1.0
+info:
+  title: n8n Smart Home Proxy API
+  version: 1.0.0
+  description: |
+    A simple proxy API (e.g., hosted in n8n) to call Home Assistant and/or Git operations safely.
+    Protect this endpoint with an API key and HTTPS.
+servers:
+  - url: https://YOUR_N8N_BASE_URL
+paths:
+  /webhook/ha/get_state:
+    post:
+      operationId: haGetState
+      summary: Get state for a specific entity_id via proxy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entity_id:
+                  type: string
+              required: [entity_id]
+      responses:
+        "200":
+          description: OK
+  /webhook/ha/call_service:
+    post:
+      operationId: haCallService
+      summary: Call a Home Assistant service via proxy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain: { type: string }
+                service: { type: string }
+                data:
+                  type: object
+                  additionalProperties: true
+              required: [domain, service]
+      responses:
+        "200":
+          description: OK
+  /webhook/git/latest_changes:
+    post:
+      operationId: gitLatestChanges
+      summary: Get latest change summary/diff via proxy (repo-specific)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: OK
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+security:
+  - apiKeyAuth: []

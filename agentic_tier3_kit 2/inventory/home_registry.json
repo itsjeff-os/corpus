@@ -1,0 +1,1093 @@
+{
+  "meta": {
+    "version": "0.1.0",
+    "generated_by": "GPT-5.1 Thinking (architect mode)",
+    "description": "Canonical AI-centred registry of Jeff's flat smart home environment, based on HomeKit logs, HA entity inventory, and manual inventories. Notion is treated as contextual only."
+  },
+  "rooms": [
+    {
+      "id": "room.open_plan",
+      "name": "Open Plan",
+      "aliases": [
+        "Core",
+        "Living Room",
+        "Kitchen",
+        "Dining"
+      ],
+      "kind": [
+        "living",
+        "kitchen",
+        "dining"
+      ],
+      "zones": [
+        "zone.open_plan_fp2"
+      ]
+    },
+    {
+      "id": "room.bedroom1",
+      "name": "Bedroom 1 (Alpha)",
+      "aliases": [
+        "Alpha Bedroom",
+        "Primary Bedroom"
+      ],
+      "kind": [
+        "bedroom"
+      ],
+      "zones": [
+        "zone.bedroom1_fp2"
+      ]
+    },
+    {
+      "id": "room.bedroom2",
+      "name": "Bedroom 2 (Beta)",
+      "aliases": [
+        "Beta Bedroom",
+        "Secondary Bedroom"
+      ],
+      "kind": [
+        "bedroom"
+      ],
+      "zones": [
+        "zone.bedroom2_fp2"
+      ]
+    },
+    {
+      "id": "room.bathroom_throne",
+      "name": "Bathroom (Throne)",
+      "aliases": [
+        "Throne Bathroom",
+        "Primary Bathroom"
+      ],
+      "kind": [
+        "bathroom"
+      ],
+      "zones": []
+    },
+    {
+      "id": "room.bathroom_secondary",
+      "name": "Secondary Bathroom (Splash)",
+      "aliases": [
+        "Splash Bathroom"
+      ],
+      "kind": [
+        "bathroom"
+      ],
+      "zones": []
+    },
+    {
+      "id": "room.hallway",
+      "name": "Hallway (Pass)",
+      "aliases": [
+        "Pass Hallway"
+      ],
+      "kind": [
+        "hallway"
+      ],
+      "zones": [
+        "zone.hallway_fp2"
+      ]
+    },
+    {
+      "id": "room.laundry_utility",
+      "name": "Laundry / Utility (Chaos)",
+      "aliases": [
+        "Chaos",
+        "Utility",
+        "Laundry"
+      ],
+      "kind": [
+        "utility"
+      ],
+      "zones": []
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone.open_plan_fp2",
+      "name": "Open Plan FP2 Zone",
+      "room_ids": [
+        "room.open_plan"
+      ],
+      "sensor_ids": [
+        "sensor.fp2_open_plan_presence",
+        "sensor.fp2_open_plan_lux"
+      ]
+    },
+    {
+      "id": "zone.bedroom1_fp2",
+      "name": "Bedroom 1 FP2 Zone",
+      "room_ids": [
+        "room.bedroom1"
+      ],
+      "sensor_ids": [
+        "sensor.fp2_bedroom1_presence",
+        "sensor.fp2_bedroom1_lux"
+      ]
+    },
+    {
+      "id": "zone.bedroom2_fp2",
+      "name": "Bedroom 2 FP2 Zone",
+      "room_ids": [
+        "room.bedroom2"
+      ],
+      "sensor_ids": [
+        "sensor.fp2_bedroom2_presence",
+        "sensor.fp2_bedroom2_lux"
+      ]
+    },
+    {
+      "id": "zone.hallway_fp2",
+      "name": "Hallway FP2 / Motion Zone",
+      "room_ids": [
+        "room.hallway"
+      ],
+      "sensor_ids": [
+        "sensor.motion_hallway_1",
+        "sensor.motion_hallway_2"
+      ]
+    }
+  ],
+  "infrastructure": [
+    {
+      "id": "infra.unifi_gateway",
+      "name": "Unifi Cloud Gateway Ultra",
+      "type": "router_controller",
+      "location_room_id": "room.laundry_utility",
+      "integrations": [
+        "network_core"
+      ]
+    },
+    {
+      "id": "infra.hue_bridge_pro",
+      "name": "Philips Hue Bridge Pro",
+      "type": "lighting_bridge",
+      "location_room_id": "room.laundry_utility",
+      "integrations": [
+        "home_assistant",
+        "homekit",
+        "hue_app"
+      ]
+    },
+    {
+      "id": "infra.aqara_m3",
+      "name": "Aqara M3 Hub",
+      "type": "zigbee_matter_hub",
+      "location_room_id": "room.laundry_utility",
+      "integrations": [
+        "home_assistant",
+        "homekit",
+        "aqara_app"
+      ]
+    },
+    {
+      "id": "infra.switchbot_hub3",
+      "name": "Switchbot Hub 3",
+      "type": "switchbot_hub",
+      "location_room_id": "room.laundry_utility",
+      "integrations": [
+        "home_assistant",
+        "switchbot_app"
+      ]
+    },
+    {
+      "id": "infra.home_assistant_server",
+      "name": "GMKtec Mini PC (Homelab)",
+      "type": "automation_core",
+      "location_room_id": "room.laundry_utility",
+      "integrations": [
+        "docker",
+        "home_assistant"
+      ]
+    }
+  ],
+  "devices": [
+    {
+      "id": "device.open_plan_ceiling_group",
+      "name": "Open Plan Ceiling Lights",
+      "type": "light_group",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {
+          "primary_entities": [
+            "light.open_plan_ceiling",
+            "light.open_plan_all_lights"
+          ],
+          "scenes": [
+            "scene.living_relax",
+            "scene.living_concentrate",
+            "scene.living_energise",
+            "scene.living_nightlight",
+            "scene.open_plan_ceiling_lights_all_day"
+          ]
+        }
+      }
+    },
+    {
+      "id": "device.open_plan_ambient_group",
+      "name": "Open Plan Ambient Lighting",
+      "type": "light_group",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {
+          "primary_entities": [
+            "light.open_plan_ambient"
+          ]
+        }
+      }
+    },
+    {
+      "id": "device.open_plan_ac",
+      "name": "Dreo Smart Portable AC (Open Plan)",
+      "type": "climate_device",
+      "role": "ac",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "on_off",
+        "set_mode",
+        "set_temperature",
+        "fan_speed"
+      ],
+      "integrations": {
+        "home_assistant": {
+          "primary_entities": [
+            "climate.living_ac"
+          ]
+        }
+      }
+    },
+    {
+      "id": "device.open_plan_humidifier",
+      "name": "Levoit Dual 200S Humidifier (Open Plan)",
+      "type": "climate_device",
+      "role": "humidifier",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "on_off",
+        "set_humidity",
+        "modes"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.open_plan_curtains",
+      "name": "Aqara Curtain Controller E1 (Pair)",
+      "type": "window_treatment",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "open",
+        "close",
+        "set_position"
+      ],
+      "integrations": {
+        "home_assistant": {
+          "primary_entities": [
+            "cover.openplan_curtains"
+          ]
+        }
+      }
+    },
+    {
+      "id": "device.open_plan_media_cluster",
+      "name": "Open Plan Media Cluster",
+      "type": "media_cluster",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "on_off",
+        "volume",
+        "media_control"
+      ],
+      "integrations": {
+        "home_assistant": {
+          "primary_entities": [
+            "media_player.living_homepods",
+            "media_player.apple_tv"
+          ]
+        }
+      }
+    },
+    {
+      "id": "device.open_plan_tv",
+      "name": "Samsung Serif 50\" TV",
+      "type": "media_device",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "on_off",
+        "input_select",
+        "volume"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "sensor.fp2_open_plan_presence",
+      "name": "FP2 Open Plan Presence",
+      "type": "sensor_presence",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "presence",
+        "zones"
+      ],
+      "integrations": {
+        "home_assistant": {
+          "primary_entities": [
+            "binary_sensor.presence_sensor_fp2_openplan",
+            "binary_sensor.presence_sensor_fp2_living_area",
+            "binary_sensor.presence_sensor_fp2_kitchen",
+            "binary_sensor.presence_sensor_fp2_dining_area"
+          ]
+        }
+      }
+    },
+    {
+      "id": "sensor.fp2_open_plan_lux",
+      "name": "FP2 Open Plan Lux",
+      "type": "sensor_lux",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "illuminance"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_right_bedside_lamp",
+      "name": "Right Bedside Lamp",
+      "type": "light",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_ola_floor_spot",
+      "name": "Ola XL Floor Spotlamp",
+      "type": "light",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_alpha_ceiling_1",
+      "name": "Alphaflex Ceiling Light.1",
+      "type": "light",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_alpha_ceiling_2",
+      "name": "Alpha Ceiling Light.2",
+      "type": "light",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_alpha_ceiling_3",
+      "name": "Alpha Ceiling Light.3",
+      "type": "light",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_alpha_ceiling_4",
+      "name": "Alpha Ceiling Light.4",
+      "type": "light",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_alpha_ceiling_5",
+      "name": "Alpha Ceiling Light.5",
+      "type": "light",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_alpha_ceiling_6",
+      "name": "Alpha Ceiling Light.6",
+      "type": "light",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_purifier",
+      "name": "Levoit Air 300S Purifier",
+      "type": "climate_device",
+      "role": "air_purifier",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "fan_speed",
+        "modes"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_humidifier",
+      "name": "Dreo Smart Humidifier (Bedroom 1)",
+      "type": "climate_device",
+      "role": "humidifier",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "set_humidity"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_sleep_mat",
+      "name": "Withings Sleep Mat",
+      "type": "health_device",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "sleep_state",
+        "presence"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "sensor.fp2_bedroom1_presence",
+      "name": "FP2 Bedroom 1 Presence",
+      "type": "sensor_presence",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "presence",
+        "zones"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "sensor.fp2_bedroom1_lux",
+      "name": "FP2 Bedroom 1 Lux",
+      "type": "sensor_lux",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "illuminance"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom1_tv",
+      "name": "Samsung UHD 50\" TV (Bedroom 1)",
+      "type": "media_device",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "on_off",
+        "input_select",
+        "volume"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom2_signe_floor_lamp",
+      "name": "Signe Gradient Floor Lamp",
+      "type": "light",
+      "room_id": "room.bedroom2",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom2_betaflex_ceiling_1",
+      "name": "Betaflex Ceiling Light.1",
+      "type": "light",
+      "room_id": "room.bedroom2",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom2_beta_ceiling_3",
+      "name": "Beta Ceiling Light.3",
+      "type": "light",
+      "room_id": "room.bedroom2",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom2_beta_ceiling_4",
+      "name": "Beta Ceiling Light.4",
+      "type": "light",
+      "room_id": "room.bedroom2",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom2_beta_ceiling_5",
+      "name": "Beta Ceiling Light.5",
+      "type": "light",
+      "room_id": "room.bedroom2",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom2_beta_ceiling_6",
+      "name": "Beta Ceiling Light.6",
+      "type": "light",
+      "room_id": "room.bedroom2",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bedroom2_bed_lightstrip",
+      "name": "Beta Bed Lightstrip",
+      "type": "light",
+      "room_id": "room.bedroom2",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "sensor.fp1e_bedroom2_presence",
+      "name": "FP1E Bedroom 2 Presence",
+      "type": "sensor_presence",
+      "room_id": "room.bedroom2",
+      "capabilities": [
+        "presence",
+        "zones"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bathroom_throne_ceiling_1",
+      "name": "Throne Ceiling Light.1",
+      "type": "light",
+      "room_id": "room.bathroom_throne",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bathroom_throne_ceiling_2",
+      "name": "Throne Ceiling Light.2",
+      "type": "light",
+      "room_id": "room.bathroom_throne",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bathroom_throne_ceiling_3",
+      "name": "Throne Ceiling Light.3",
+      "type": "light",
+      "room_id": "room.bathroom_throne",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bathroom_throne_ceiling_4",
+      "name": "Throne Ceiling Light.4",
+      "type": "light",
+      "room_id": "room.bathroom_throne",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "sensor.bathroom_throne_temp",
+      "name": "Throne Bathroom Temperature Sensor",
+      "type": "sensor_temperature",
+      "room_id": "room.bathroom_throne",
+      "capabilities": [
+        "temperature"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bathroom_secondary_splash_ceiling_1",
+      "name": "Splash Ceiling Light.1",
+      "type": "light",
+      "room_id": "room.bathroom_secondary",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bathroom_secondary_splash_ceiling_2",
+      "name": "Splash Ceiling Light.2",
+      "type": "light",
+      "room_id": "room.bathroom_secondary",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bathroom_secondary_splash_ceiling_3",
+      "name": "Splash Ceiling Light.3",
+      "type": "light",
+      "room_id": "room.bathroom_secondary",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bathroom_secondary_splash_ceiling_4",
+      "name": "Splash Ceiling Light.4",
+      "type": "light",
+      "room_id": "room.bathroom_secondary",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.bathroom_secondary_splash_ceiling_5",
+      "name": "Splash Ceiling Light.5",
+      "type": "light",
+      "room_id": "room.bathroom_secondary",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "sensor.bathroom_secondary_temp",
+      "name": "Secondary Bathroom Temperature Sensor",
+      "type": "sensor_temperature",
+      "room_id": "room.bathroom_secondary",
+      "capabilities": [
+        "temperature"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "sensor.bathroom_secondary_occupancy",
+      "name": "Secondary Bathroom Occupancy Sensor",
+      "type": "sensor_presence",
+      "room_id": "room.bathroom_secondary",
+      "capabilities": [
+        "presence"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.hallway_pass_ceiling_1",
+      "name": "Pass Ceiling Light.1",
+      "type": "light",
+      "room_id": "room.hallway",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.hallway_pass_ceiling_2",
+      "name": "Pass Ceiling Light.2",
+      "type": "light",
+      "room_id": "room.hallway",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.hallway_pass_ceiling_3",
+      "name": "Pass Ceiling Light.3",
+      "type": "light",
+      "room_id": "room.hallway",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.hallway_pass_ceiling_4",
+      "name": "Pass Ceiling Light.4",
+      "type": "light",
+      "room_id": "room.hallway",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.hallway_pass_ceiling_5",
+      "name": "Pass Ceiling Light.5",
+      "type": "light",
+      "room_id": "room.hallway",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "sensor.motion_hallway_1",
+      "name": "Hallway Motion Sensor 1",
+      "type": "sensor_motion",
+      "room_id": "room.hallway",
+      "capabilities": [
+        "motion"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "sensor.motion_hallway_2",
+      "name": "Hallway Motion Sensor 2",
+      "type": "sensor_motion",
+      "room_id": "room.hallway",
+      "capabilities": [
+        "motion"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.laundry_ceiling_light",
+      "name": "Laundry Ceiling Light",
+      "type": "light",
+      "room_id": "room.laundry_utility",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.utility_ceiling_light",
+      "name": "Utility Ceiling Light",
+      "type": "light",
+      "room_id": "room.laundry_utility",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color_temp"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.play_gradient_tube_1",
+      "name": "Play Gradient Tube 1",
+      "type": "light",
+      "room_id": "room.laundry_utility",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.prestobed_right_gradient",
+      "name": "PrestoBed Right Gradient Light",
+      "type": "light",
+      "room_id": "room.laundry_utility",
+      "capabilities": [
+        "on_off",
+        "brightness",
+        "color"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "device.eufy_s1_omni_pro",
+      "name": "Eufy S1 Omni Pro",
+      "type": "robot_vacuum",
+      "room_id": "room.laundry_utility",
+      "capabilities": [
+        "start",
+        "stop",
+        "dock",
+        "zone_clean"
+      ],
+      "integrations": {
+        "home_assistant": {
+          "primary_entities": [
+            "vacuum.eufy_s1_omni_pro"
+          ]
+        }
+      }
+    }
+  ],
+  "actuators": [
+    {
+      "id": "actuator.alpha_bedroom_dial",
+      "name": "Alpha Bedroom Hue Dial Switch",
+      "type": "stateless_button",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "button_press",
+        "dial_rotate"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "actuator.bed_smart_button",
+      "name": "Bed Smart Button",
+      "type": "stateless_button",
+      "room_id": "room.bedroom1",
+      "capabilities": [
+        "button_press"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "actuator.beta_bedroom_dial",
+      "name": "Beta Bedroom Hue Dial Switch",
+      "type": "stateless_button",
+      "room_id": "room.bedroom2",
+      "capabilities": [
+        "button_press",
+        "dial_rotate"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "actuator.throne_bathroom_ceiling_switch",
+      "name": "Throne Bathroom Ceiling Switch",
+      "type": "stateless_button",
+      "room_id": "room.bathroom_throne",
+      "capabilities": [
+        "button_press"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "actuator.splash_dimmer_switch",
+      "name": "Splash Dimmer Switch",
+      "type": "stateless_button",
+      "room_id": "room.bathroom_secondary",
+      "capabilities": [
+        "button_press",
+        "brightness_control"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "actuator.hallway_dimmer_switch",
+      "name": "Hallway Dimmer Switch",
+      "type": "stateless_button",
+      "room_id": "room.hallway",
+      "capabilities": [
+        "button_press",
+        "brightness_control"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    },
+    {
+      "id": "actuator.core_hue_tap_dial",
+      "name": "Core Hue Tap Dial Switch",
+      "type": "stateless_button",
+      "room_id": "room.open_plan",
+      "capabilities": [
+        "button_press",
+        "dial_rotate"
+      ],
+      "integrations": {
+        "home_assistant": {}
+      }
+    }
+  ]
+}

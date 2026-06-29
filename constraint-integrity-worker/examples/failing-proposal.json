@@ -1,0 +1,19 @@
+{
+  "proposal": {
+    "solutionClass": "folder_based_placement_system",
+    "mechanisms": {
+      "manual_categorisation": true,
+      "placement_decisions": true,
+      "multi_location_workflow": true
+    },
+    "claims": [
+      { "type": "structural_difference" },
+      { "type": "intent_attribution" }
+    ],
+    "structuralDelta": {
+      "previousRequired": ["placement_decisions", "manual_categorisation"],
+      "currentForbidden": []
+    }
+  },
+  "autoban": true
+}

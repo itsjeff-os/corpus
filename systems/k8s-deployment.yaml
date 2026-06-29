@@ -1,0 +1,253 @@
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openai-agent
+
+---
+# Secret for API keys
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openai-agent-secrets
+  namespace: openai-agent
+type: Opaque
+stringData:
+  OPENAI_API_KEY: "your-openai-api-key-here"
+  ZEP_API_KEY: "your-zep-api-key-here"  # Optional
+
+---
+# ConfigMap for configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openai-agent-config
+  namespace: openai-agent
+data:
+  ZEP_API_URL: "http://zep-service:8000"
+  OPENAI_MODEL: "gpt-4"
+  AGENT_NAME: "Assistant"
+  MAX_TOKENS: "2000"
+  TEMPERATURE: "0.7"
+  PORT: "5000"
+
+---
+# PostgreSQL StatefulSet for Zep
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: openai-agent
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        - name: POSTGRES_DB
+          value: zep
+        ports:
+        - containerPort: 5432
+          name: postgres
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: openai-agent
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  clusterIP: None
+
+---
+# Zep Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zep
+  namespace: openai-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zep
+  template:
+    metadata:
+      labels:
+        app: zep
+    spec:
+      containers:
+      - name: zep
+        image: ghcr.io/getzep/zep:latest
+        env:
+        - name: ZEP_STORE_TYPE
+          value: postgres
+        - name: ZEP_STORE_POSTGRES_DSN
+          value: postgres://postgres:postgres@postgres:5432/zep?sslmode=disable
+        ports:
+        - containerPort: 8000
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+---
+# Zep Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: zep-service
+  namespace: openai-agent
+spec:
+  selector:
+    app: zep
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+
+---
+# Agent Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openai-agent
+  namespace: openai-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: openai-agent
+  template:
+    metadata:
+      labels:
+        app: openai-agent
+    spec:
+      containers:
+      - name: agent
+        image: your-registry/openai-zep-agent:latest  # Update with your image
+        envFrom:
+        - configMapRef:
+            name: openai-agent-config
+        - secretRef:
+            name: openai-agent-secrets
+        ports:
+        - containerPort: 5000
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+
+---
+# Agent Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: openai-agent-service
+  namespace: openai-agent
+spec:
+  selector:
+    app: openai-agent
+  ports:
+  - port: 80
+    targetPort: 5000
+    name: http
+  type: LoadBalancer
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: openai-agent-hpa
+  namespace: openai-agent
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: openai-agent
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

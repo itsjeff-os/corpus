@@ -1,0 +1,88 @@
+openapi: 3.1.0
+info:
+  title: Home Assistant REST API (Minimal)
+  version: 1.0.0
+  description: |
+    Minimal Home Assistant API for reading entity state and calling services.
+    IMPORTANT: Set the server URL to your Home Assistant base URL (e.g., https://ha.example.com).
+servers:
+  - url: https://YOUR_HOME_ASSISTANT_BASE_URL
+paths:
+  /api/:
+    get:
+      operationId: getApiRoot
+      summary: API root
+      responses:
+        "200":
+          description: OK
+  /api/config:
+    get:
+      operationId: getConfig
+      summary: Get Home Assistant config (timezone, location, etc.)
+      responses:
+        "200":
+          description: OK
+  /api/states:
+    get:
+      operationId: listStates
+      summary: List all entity states (can be large)
+      responses:
+        "200":
+          description: OK
+  /api/states/{entity_id}:
+    get:
+      operationId: getState
+      summary: Get a single entity state
+      parameters:
+        - name: entity_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Home Assistant entity_id (e.g., light.kitchen)
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+  /api/services/{domain}/{service}:
+    post:
+      operationId: callService
+      summary: Call a Home Assistant service
+      parameters:
+        - name: domain
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Service domain (e.g., light, switch, scene, script)
+        - name: service
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Service name (e.g., turn_on, turn_off, toggle)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+            examples:
+              turn_on_light:
+                summary: Turn on a light
+                value:
+                  entity_id: light.kitchen
+                  brightness_pct: 30
+                  transition: 2
+      responses:
+        "200":
+          description: OK
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []

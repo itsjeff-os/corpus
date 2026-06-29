@@ -1,0 +1,20 @@
+{
+	"name": "smexy-beast",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev"
+	},
+	"devDependencies": {
+		"wrangler": "^4.68.1"
+	},
+	"dependencies": {
+		"@cloudflare/ai-chat": "^0.1.5",
+		"agents": "^0.6.0",
+		"ai": "^6.0.99",
+		"workers-ai-provider": "^3.1.2",
+		"zod": "^4.3.6"
+	}
+}

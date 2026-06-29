@@ -1,0 +1,285 @@
+blueprint:
+  name: Ceiling • Daily Rhythm + Presence
+  description: >
+    Presence-based ceiling light automation that follows the day (morning/day/evening/night),
+    fades out after a delay, and can be limited by sun elevation (so it generally won't run
+    in full daylight unless you explicitly enable daytime).
+  domain: automation
+
+  input:
+    sensor_entity:
+      name: Motion / Presence Sensor
+      selector:
+        entity:
+          domain: binary_sensor
+
+    light_target:
+      name: Ceiling Light / Group
+      selector:
+        target:
+          entity:
+            domain: light
+
+    sun_elevation_below:
+      name: Run only when sun elevation below
+      description: 15° ≈ bright daytime. Lower number = stricter (only darker conditions).
+      default: 15
+      selector:
+        number:
+          min: -10
+          max: 45
+          step: 1
+          unit_of_measurement: "°"
+
+    # Time windows
+    morning_start:
+      name: Morning starts at
+      default: "06:00:00"
+      selector:
+        time: {}
+    morning_end:
+      name: Morning ends at
+      default: "09:30:00"
+      selector:
+        time: {}
+    evening_start:
+      name: Evening starts at
+      default: "16:00:00"
+      selector:
+        time: {}
+    night_start:
+      name: Night starts at
+      default: "23:00:00"
+      selector:
+        time: {}
+    night_end:
+      name: Night ends at
+      default: "06:00:00"
+      selector:
+        time: {}
+
+    enable_daytime:
+      name: Enable daytime automation (between morning_end and evening_start)
+      default: false
+      selector:
+        boolean: {}
+
+    # Profiles
+    morning_brightness:
+      name: Morning brightness (%)
+      default: 45
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+    morning_color_temp:
+      name: Morning color temperature (mired)
+      default: 330
+      selector:
+        number:
+          min: 250
+          max: 500
+          unit_of_measurement: "mired"
+
+    day_brightness:
+      name: Day brightness (%)
+      default: 70
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+    day_color_temp:
+      name: Day color temperature (mired)
+      default: 300
+      selector:
+        number:
+          min: 250
+          max: 500
+          unit_of_measurement: "mired"
+
+    evening_brightness:
+      name: Evening brightness (%)
+      default: 55
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+    evening_color_temp:
+      name: Evening color temperature (mired)
+      default: 350
+      selector:
+        number:
+          min: 250
+          max: 500
+          unit_of_measurement: "mired"
+
+    night_brightness:
+      name: Night brightness (%)
+      default: 16
+      selector:
+        number:
+          min: 1
+          max: 50
+          unit_of_measurement: "%"
+    night_color_temp:
+      name: Night color temperature (mired)
+      default: 420
+      selector:
+        number:
+          min: 300
+          max: 500
+          unit_of_measurement: "mired"
+
+    # Tuning
+    off_delay:
+      name: Off delay after room empty (minutes)
+      default: 4
+      selector:
+        number:
+          min: 0
+          max: 60
+          unit_of_measurement: minutes
+          mode: slider
+    fade_in_transition:
+      name: Fade-in time (seconds)
+      default: 4
+      selector:
+        number:
+          min: 0
+          max: 30
+          unit_of_measurement: "s"
+    fade_out_transition:
+      name: Fade-out time (seconds)
+      default: 6
+      selector:
+        number:
+          min: 0
+          max: 60
+          unit_of_measurement: "s"
+
+mode: restart
+
+variables:
+  off_delay: !input off_delay
+  sun_elevation_below: !input sun_elevation_below
+  morning_start: !input morning_start
+  morning_end: !input morning_end
+  evening_start: !input evening_start
+  night_start: !input night_start
+  night_end: !input night_end
+  enable_daytime: !input enable_daytime
+  morning_brightness: !input morning_brightness
+  morning_color_temp: !input morning_color_temp
+  day_brightness: !input day_brightness
+  day_color_temp: !input day_color_temp
+  evening_brightness: !input evening_brightness
+  evening_color_temp: !input evening_color_temp
+  night_brightness: !input night_brightness
+  night_color_temp: !input night_color_temp
+  fade_in_transition: !input fade_in_transition
+  fade_out_transition: !input fade_out_transition
+
+trigger:
+  - id: presence_on
+    platform: state
+    entity_id: !input sensor_entity
+    to: "on"
+  - id: presence_off
+    platform: state
+    entity_id: !input sensor_entity
+    to: "off"
+
+action:
+  - choose:
+      # 1) SENSOR ON → pick phase + fade in
+      - conditions:
+          - condition: trigger
+            id: presence_on
+          - condition: numeric_state
+            entity_id: sun.sun
+            attribute: elevation
+            below: !input sun_elevation_below
+        sequence:
+          - choose:
+              # Night
+              - conditions:
+                  - condition: or
+                    conditions:
+                      - condition: time
+                        after: !input night_start
+                      - condition: time
+                        before: !input night_end
+                sequence:
+                  - service: light.turn_on
+                    target: !input light_target
+                    data:
+                      brightness_pct: "{{ night_brightness | int }}"
+                      color_temp: "{{ night_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+
+              # Morning
+              - conditions:
+                  - condition: time
+                    after: !input morning_start
+                    before: !input morning_end
+                sequence:
+                  - service: light.turn_on
+                    target: !input light_target
+                    data:
+                      brightness_pct: "{{ morning_brightness | int }}"
+                      color_temp: "{{ morning_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+
+              # Evening
+              - conditions:
+                  - condition: time
+                    after: !input evening_start
+                    before: !input night_start
+                sequence:
+                  - service: light.turn_on
+                    target: !input light_target
+                    data:
+                      brightness_pct: "{{ evening_brightness | int }}"
+                      color_temp: "{{ evening_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+
+              # Optional Day
+              - conditions:
+                  - condition: template
+                    value_template: "{{ enable_daytime | bool }}"
+                  - condition: time
+                    after: !input morning_end
+                    before: !input evening_start
+                sequence:
+                  - service: light.turn_on
+                    target: !input light_target
+                    data:
+                      brightness_pct: "{{ day_brightness | int }}"
+                      color_temp: "{{ day_color_temp | int }}"
+                      transition: "{{ fade_in_transition | int }}"
+
+            default:
+              - service: light.turn_on
+                target: !input light_target
+                data:
+                  brightness_pct: "{{ evening_brightness | int }}"
+                  color_temp: "{{ evening_color_temp | int }}"
+                  transition: "{{ fade_in_transition | int }}"
+
+      # 2) SENSOR OFF → delay + fade out
+      - conditions:
+          - condition: trigger
+            id: presence_off
+        sequence:
+          - delay:
+              minutes: "{{ off_delay | int }}"
+          - condition: state
+            entity_id: !input sensor_entity
+            state: "off"
+          - service: light.turn_off
+            target: !input light_target
+            data:
+              transition: "{{ fade_out_transition | int }}"

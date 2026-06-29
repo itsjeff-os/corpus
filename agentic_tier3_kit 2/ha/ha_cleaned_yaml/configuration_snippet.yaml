@@ -1,0 +1,10 @@
+# Minimal snippet showing the corrected, multiline-safe writer.
+# Put this in configuration.yaml (or a package), then restart Home Assistant.
+
+shell_command:
+  write_automation: >
+    python3 -c 'import sys, json, pathlib;
+    d=json.loads(sys.argv[1]);
+    p=pathlib.Path("/config/packages")/d["file_name"];
+    p.write_text(d["automation_yaml"], encoding="utf-8")'
+    '{{ {"file_name": file_name, "automation_yaml": automation_yaml} | tojson }}'

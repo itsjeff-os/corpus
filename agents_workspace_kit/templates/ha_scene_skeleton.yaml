@@ -1,0 +1,11 @@
+# Home Assistant scene skeleton (copy/paste)
+
+- name: "Living Room — Evening Cozy"
+  icon: "mdi:weather-sunset"
+  entities:
+    light.living_room_lamp:
+      state: "on"
+      brightness: 90
+      color_temp: 370   # mireds (example)
+    light.living_room_ceiling:
+      state: "off"

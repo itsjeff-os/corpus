@@ -1,0 +1,40 @@
+# Home Assistant automation skeleton (copy/paste)
+
+- alias: "AREA — Purpose (Trigger)"
+  description: >
+    What this automation does and why.
+  mode: single
+  # max_exceeded: silent   # optional for queued/restart modes
+
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.example
+      to: "on"
+
+  condition:
+    - condition: state
+      entity_id: input_boolean.do_not_disturb
+      state: "off"
+
+  action:
+    - variables:
+        target_light: light.example
+        transition_s: 3
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.some_other_condition
+              state: "on"
+          sequence:
+            - service: light.turn_on
+              target:
+                entity_id: "{{ target_light }}"
+              data:
+                brightness_pct: 40
+                transition: "{{ transition_s }}"
+      default:
+        - service: light.turn_off
+          target:
+            entity_id: "{{ target_light }}"
+          data:
+            transition: "{{ transition_s }}"

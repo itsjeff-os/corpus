@@ -1,0 +1,194 @@
+openapi: 3.0.1
+info:
+  title: GPT Gateway (n8n) for Home Assistant + Notion + Email
+  version: 1.0.0
+  description: |
+    A small HTTPS gateway (implemented in n8n) that lets a Custom GPT read Home Assistant state and (with explicit confirmation) execute approved actions:
+    - write Home Assistant automations/packages
+    - create Notion pages
+    - send email
+
+servers:
+  - url: https://YOUR_DOMAIN.example.com/gpt-gateway
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+
+paths:
+  /health:
+    get:
+      operationId: health
+      summary: Health check
+      description: Returns ok if the gateway is reachable.
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /read/ha/state:
+    post:
+      operationId: haGetState
+      summary: Read the current state of a Home Assistant entity
+      description: Read-only. Returns state + attributes for an entity_id.
+      x-openai-isConsequential: false
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entity_id]
+              properties:
+                entity_id:
+                  type: string
+                  description: Home Assistant entity_id (e.g. light.kitchen).
+      responses:
+        '200':
+          description: State
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entity_id:
+                    type: string
+                  state:
+                    type: string
+                  attributes:
+                    type: object
+                    additionalProperties: true
+                  last_changed:
+                    type: string
+
+  /read/ha/search:
+    post:
+      operationId: haSearchEntities
+      summary: Search Home Assistant entities (server-side)
+      description: Read-only. Use this to find the right entity_id without dumping the whole entity list.
+      x-openai-isConsequential: false
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query:
+                  type: string
+                  description: Substring to search for (case-insensitive).
+                domain:
+                  type: string
+                  description: Optional HA domain filter (light, sensor, binary_sensor, etc.)
+                limit:
+                  type: integer
+                  description: Max results (default 25).
+      responses:
+        '200':
+          description: Matches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matches:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        entity_id:
+                          type: string
+                        name:
+                          type: string
+                        state:
+                          type: string
+
+  /write/batch:
+    post:
+      operationId: executeBatch
+      summary: Execute an approved batch of actions (HITL)
+      description: |
+        Consequential. Use ONE call to execute multiple approved actions (HA + Notion + Email).
+        The GPT must present a human-readable approval packet before calling this endpoint.
+      x-openai-isConsequential: true
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approval, operations]
+              properties:
+                approval:
+                  type: object
+                  description: Approval metadata echoed from the user-confirmed approval packet.
+                  required: [approved_by, approval_phrase]
+                  properties:
+                    approved_by:
+                      type: string
+                      description: Who approved (e.g. "Jeff").
+                    approval_phrase:
+                      type: string
+                      description: Exact phrase the user typed to approve (for audit logs).
+                    change_summary:
+                      type: string
+                      description: Short human summary of what will happen.
+                operations:
+                  type: array
+                  description: Ordered list of operations to execute.
+                  items:
+                    type: object
+                    required: [op_type]
+                    properties:
+                      op_type:
+                        type: string
+                        description: |
+                          One of:
+                          - ha_write_automation_package
+                          - ha_call_service
+                          - notion_create_page
+                          - email_send
+                      payload:
+                        type: object
+                        additionalProperties: true
+      responses:
+        '200':
+          description: Results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        op_type:
+                          type: string
+                        ok:
+                          type: boolean
+                        output:
+                          type: object
+                          additionalProperties: true
+                        error:
+                          type: string

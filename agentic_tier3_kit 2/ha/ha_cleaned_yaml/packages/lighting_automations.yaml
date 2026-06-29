@@ -1,0 +1,75 @@
+# Cleaned automations (duplicate IDs removed).
+#
+# NOTE: Avoid running two automations that control the same lights from the same sensors,
+# otherwise they can fight each other. This set is designed to be non-overlapping.
+
+automation:
+  # Open plan: follow-me atmosphere (kept 1 canonical version)
+  - id: open_plan_follow_me_atmosphere
+    alias: "Open Plan • Follow-Me Atmosphere"
+    mode: restart
+    use_blueprint:
+      path: room_follow_me_atmosphere.yaml
+      input:
+        sensor_entity: binary_sensor.fp2_openplan_room
+        light_target:
+          entity_id: light.openplan_ceiling_lights_2
+        off_delay: 4
+        dark_elevation_below: 0
+        evening_start: "16:00:00"
+        night_start: "22:30:00"
+        morning_end: "06:00:00"
+        evening_brightness: 65
+        evening_color_temp: 350
+        night_brightness: 18
+        night_color_temp: 400
+        fade_in_transition: 4
+        fade_out_transition: 6
+
+  # Bedroom ceiling: daily rhythm (kept the expanded override version)
+  - id: bedroom2_daily_rhythm_ceiling
+    alias: "Bedroom 2 • Daily Rhythm Ceiling"
+    mode: restart
+    use_blueprint:
+      path: ceiling_daily_rhythm_presence.yaml
+      input:
+        sensor_entity: binary_sensor.bedroom_2_fp1e_occupancy_sensor
+        light_target:
+          entity_id: light.beta_bedroom_ceiling_group
+        sun_elevation_below: 15
+        off_delay: 7
+        enable_daytime: false
+        morning_brightness: 40
+        morning_color_temp: 330
+        day_brightness: 60
+        day_color_temp: 310
+        evening_brightness: 40
+        evening_color_temp: 360
+        night_brightness: 12
+        night_color_temp: 430
+        fade_in_transition: 5
+        fade_out_transition: 8
+
+  # Bedroom suite: wardrobe + bathroom path lighting (use instead of separate daily-rhythm automations)
+  - id: bedroom2_suite_bath_path
+    alias: "Bedroom 2 Suite • Bathroom Path"
+    mode: restart
+    use_blueprint:
+      path: bedroom_suite_bath_path.yaml
+      input:
+        wardrobe_motion: binary_sensor.bedroom_2_motion
+        bathroom_motion: binary_sensor.front_bath_motion
+        wardrobe_light:
+          entity_id: light.beta_flex_ceiling_lights
+        bathroom_light:
+          entity_id: light.splash_ceiling_group
+        off_delay: 4
+        day_brightness: 80
+        day_color_temp: 300
+        evening_brightness: 60
+        evening_color_temp: 340
+        night_brightness_wardrobe: 18
+        night_brightness_bathroom: 8
+        night_color_temp: 430
+        fade_in_transition: 2
+        fade_out_transition: 4
