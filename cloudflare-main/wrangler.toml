@@ -1,0 +1,18 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "cloudflare-workers-d1-ai"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "my-database"
+database_id = "your-database-id"
+
+# AI Gateway configuration
+[ai]
+binding = "AI"
+
+# Environment variables (optional)
+# [vars]
+# API_KEY = "your-api-key"

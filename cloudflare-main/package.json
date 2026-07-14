@@ -1,0 +1,31 @@
+{
+  "name": "cloudflare-workers-d1-ai",
+  "version": "1.0.0",
+  "description": "Cloudflare Workers with D1 database and AI Gateway integration",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest",
+    "type-check": "tsc --noEmit",
+    "d1:migrate:local": "wrangler d1 migrations apply DB --local",
+    "d1:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "check-deployment": "bash scripts/check-deployment-readiness.sh",
+    "setup-cicd": "bash scripts/setup-cicd.sh"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "d1",
+    "ai-gateway"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4",
+    "wrangler": "^3.80.0"
+  }
+}

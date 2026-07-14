@@ -1,0 +1,122 @@
+# Example API requests for testing
+
+# Test the root endpoint
+GET http://localhost:8787/
+
+###
+
+# Create a user
+POST http://localhost:8787/users
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+
+###
+
+# Get all users
+GET http://localhost:8787/users
+
+###
+
+# Get user by ID
+GET http://localhost:8787/users/1
+
+###
+
+# Update a user
+PUT http://localhost:8787/users/1
+Content-Type: application/json
+
+{
+  "name": "John Updated",
+  "email": "john.updated@example.com"
+}
+
+###
+
+# Create a post
+POST http://localhost:8787/posts
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "title": "My First Post",
+  "content": "This is the content of my first post!"
+}
+
+###
+
+# Get all posts
+GET http://localhost:8787/posts
+
+###
+
+# Get posts by user ID
+GET http://localhost:8787/posts?user_id=1
+
+###
+
+# AI: Generate text
+POST http://localhost:8787/ai/generate
+Content-Type: application/json
+
+{
+  "prompt": "Write a short poem about the ocean",
+  "user_id": 1
+}
+
+###
+
+# AI: Classify text
+POST http://localhost:8787/ai/classify
+Content-Type: application/json
+
+{
+  "text": "This product is absolutely amazing! I love it!"
+}
+
+###
+
+# AI: Generate embeddings
+POST http://localhost:8787/ai/embeddings
+Content-Type: application/json
+
+{
+  "text": "Cloudflare Workers is awesome"
+}
+
+###
+
+# AI: Translate text
+POST http://localhost:8787/ai/translate
+Content-Type: application/json
+
+{
+  "text": "Hello, how are you today?",
+  "source_lang": "english",
+  "target_lang": "spanish"
+}
+
+###
+
+# AI: Summarize text
+POST http://localhost:8787/ai/summarize
+Content-Type: application/json
+
+{
+  "text": "Cloudflare Workers provides a serverless execution environment that allows you to create entirely new applications or augment existing ones without configuring or maintaining infrastructure. Your Worker runs on Cloudflare's global cloud network, with compute distributed across hundreds of cities worldwide.",
+  "max_length": 50
+}
+
+###
+
+# AI: Get request history
+GET http://localhost:8787/ai/history?limit=5
+
+###
+
+# Delete a user
+DELETE http://localhost:8787/users/1
