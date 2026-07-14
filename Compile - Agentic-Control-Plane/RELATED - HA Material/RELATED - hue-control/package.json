@@ -1,0 +1,19 @@
+{
+  "name": "hue-control",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lights": "node src/cli.mjs lights",
+    "rooms": "node src/cli.mjs rooms",
+    "scenes": "node src/cli.mjs scenes",
+    "status": "node src/cli.mjs status"
+  },
+  "dependencies": {
+    "@1password/sdk": "^0.4.1-beta.1",
+    "dotenv": "^17.4.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "stateful-assistant-runtime",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "packages/adapters/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "dev": "turbo run dev",
+    "eval": "turbo run eval --filter=@sar/eval"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "prettier": "^3.3.0"
+  },
+  "packageManager": "npm@10.8.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

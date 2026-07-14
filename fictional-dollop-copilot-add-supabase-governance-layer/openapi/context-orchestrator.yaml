@@ -1,0 +1,231 @@
+openapi: 3.1.0
+info:
+  title: Context Orchestrator API
+  version: 0.1.0
+  description: >-
+    Constrained action surface for ChatGPT/GPT Actions that hydrates context,
+    logs turns, snapshots session state, and requests governed updates.
+servers:
+  - url: https://api.example.com
+security:
+  - bearerAuth: []
+paths:
+  /context:
+    get:
+      operationId: getContext
+      summary: Hydrate assistant context bundle.
+      parameters:
+        - in: query
+          name: session_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Context bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextBundle'
+  /log-turn:
+    post:
+      operationId: logTurn
+      summary: Log one conversational turn plus O/I/N/C/F frame.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogTurnRequest'
+      responses:
+        '202':
+          description: Accepted
+  /snapshot-session:
+  /snapshot-session:
+    post:
+      operationId: snapshotSession
+      summary: Persist cognitive snapshot (and optional session delta).
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnapshotSessionRequest'
+      responses:
+        '202':
+          description: Accepted
+  /propose-update:
+    post:
+      operationId: proposeUpdate
+      summary: Propose constrained state/strategy updates.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposeUpdateRequest'
+      responses:
+        '202':
+          description: Accepted
+  /approval-request:
+    post:
+      operationId: createApprovalRequest
+      summary: Request approval for privileged actions.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalRequestBody'
+      responses:
+        '201':
+          description: Created
+components:
+  schemas:
+    ContextBundle:
+      type: object
+      required:
+        - cognitive_state
+        - assistant_state
+        - reasoning_runtime
+        - zep_context
+        - chroma_retrieval
+        - strategies
+        - constraints
+        - governance
+      properties:
+        cognitive_state:
+          type: object
+          additionalProperties: true
+        assistant_state:
+          type: object
+          additionalProperties: true
+        reasoning_runtime:
+          type: object
+          required:
+            - active_graph_id
+            - current_observations
+            - current_interpretations
+            - current_inferences
+            - active_conclusions
+            - challenged_nodes
+          properties:
+            active_graph_id:
+              type: string
+            current_observations:
+              type: array
+              items:
+                type: string
+            current_interpretations:
+              type: array
+              items:
+                type: string
+            current_inferences:
+              type: array
+              items:
+                type: string
+            active_conclusions:
+              type: array
+              items:
+                type: string
+            challenged_nodes:
+              type: array
+              items:
+                type: string
+        zep_context:
+          type: object
+          additionalProperties: true
+        chroma_retrieval:
+          type: object
+          additionalProperties: true
+        strategies:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        constraints:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        governance:
+          type: object
+          additionalProperties: true
+    LogTurnRequest:
+      type: object
+      required:
+        - session_id
+        - role
+        - content
+      properties:
+        session_id:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant, system, tool]
+        content:
+          type: string
+        reasoning_frame:
+          description: O/I/N/C/F reasoning frame (required for assistant turns).
+          allOf:
+            - $ref: '#/components/schemas/ReasoningFrame'
+    SnapshotSessionRequest:
+      type: object
+      required:
+        - session_id
+        - snapshot
+      properties:
+        session_id:
+          type: string
+        snapshot:
+          type: object
+          additionalProperties: true
+        delta:
+          type: object
+          additionalProperties: true
+    ProposeUpdateRequest:
+      type: object
+      required:
+        - session_id
+        - proposal_type
+        - proposal
+      properties:
+        session_id:
+          type: string
+        proposal_type:
+          type: string
+          enum: [strategy, constraint, epistemic, assistant_state]
+        proposal:
+          type: object
+          additionalProperties: true
+    ApprovalRequestBody:
+      type: object
+      required:
+        - session_id
+        - action
+        - payload
+      properties:
+        session_id:
+          type: string
+        action:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+    ReasoningFrame:
+      type: object
+      required:
+        - observation
+        - interpretation
+        - inference
+        - conclusion
+      properties:
+        observation:
+          type: string
+        interpretation:
+          type: string
+        inference:
+          type: string
+        conclusion:
+          type: string
+        feedback:
+          type: string

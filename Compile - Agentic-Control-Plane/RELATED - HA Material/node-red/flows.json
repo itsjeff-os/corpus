@@ -1,0 +1,86 @@
+[
+  {
+    "id": "core-lighting-rhythm",
+    "type": "tab",
+    "label": "Core Lighting Rhythm",
+    "disabled": false,
+    "info": "Core circadian lighting pilot. This tab is the design skeleton for the baseline rhythm: ceiling gradually yields to ambient through evening, and night defaults to ambient/path/kitchen task light rather than overhead ceiling."
+  },
+  {
+    "id": "core-rhythm-overview",
+    "type": "comment",
+    "z": "core-lighting-rhythm",
+    "name": "Core circadian baseline",
+    "info": "Design intent: Core lighting should feel alive and calm, not binary. Morning/day allows ceiling for functional light. Golden hour/evening fades ceiling down while ambient comes up. Night and late night use lamps, ambient, path, and kitchen task light by default; ceiling is only for explicit manual/cleaning override.",
+    "x": 230,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "core-rhythm-inputs",
+    "type": "comment",
+    "z": "core-lighting-rhythm",
+    "name": "Inputs to wire",
+    "info": "Use sun.sun, sensor.sun_solar_elevation, sensor.sun_solar_azimuth, Core presence helpers, Core media players, Core tap dial events, input_boolean.test_mode, input_boolean.core_lighting_auto, input_boolean.core_lighting_test_enabled, input_boolean.core_manual_override, and timer.core_manual_override.",
+    "x": 190,
+    "y": 160,
+    "wires": []
+  },
+  {
+    "id": "core-rhythm-outputs",
+    "type": "comment",
+    "z": "core-lighting-rhythm",
+    "name": "Outputs to control",
+    "info": "Primary outputs: light.core_ambient, light.core_path, light.core_living, light.core_kitchen, light.core_ceiling, light.core_all. Helpers to update: input_select.core_lighting_phase, input_select.core_activity, input_boolean.core_ceiling_allowed, input_number core target brightness/kelvin/fade values.",
+    "x": 200,
+    "y": 240,
+    "wires": []
+  },
+  {
+    "id": "core-rhythm-guardrails",
+    "type": "comment",
+    "z": "core-lighting-rhythm",
+    "name": "Guardrails before live actions",
+    "info": "No live light action should run unless Core Lighting Auto is on. During buildout, live actions should also require both Test Mode and Core Lighting Test Enabled. Manual Core dial/switch use should set Core Manual Override and start timer.core_manual_override so automations back off.",
+    "x": 230,
+    "y": 320,
+    "wires": []
+  },
+  {
+    "id": "core-rhythm-phase-map",
+    "type": "comment",
+    "z": "core-lighting-rhythm",
+    "name": "Phase map v0",
+    "info": "Morning: clearer moderate ceiling, low ambient. Day: ceiling available, ambient minimal. Golden Hour: ceiling steps down, ambient warms up. Evening: ambient leads, ceiling low. Night: ceiling off by default, ambient/path/kitchen only. Late Night: very low warm path/ambient, ceiling blocked unless manual or cleaning.",
+    "x": 200,
+    "y": 400,
+    "wires": []
+  },
+  {
+    "id": "core-rhythm-next-build",
+    "type": "comment",
+    "z": "core-lighting-rhythm",
+    "name": "Next build nodes",
+    "info": "Next implementation slice: inject every 5 minutes + sun/time evaluator -> phase targets -> HA service calls to update helper targets only. After that, add guarded light.turn_on calls with transition seconds for Core Ambient and Core Ceiling.",
+    "x": 200,
+    "y": 480,
+    "wires": []
+  },
+  {
+    "id": "area-lighting-backlog",
+    "type": "tab",
+    "label": "Area Lighting Backlog",
+    "disabled": false,
+    "info": "Placeholder tabs/notes for later lighting behavior by area. Core is the pilot; do not copy behavior to other rooms until the feel is confirmed."
+  },
+  {
+    "id": "area-lighting-backlog-note",
+    "type": "comment",
+    "z": "area-lighting-backlog",
+    "name": "Future area rhythms",
+    "info": "Future areas: Alpha Bedroom, Beta Bedroom, Pass Hallway, Throne Bathroom, Splash Bathroom, Chaos Utility. Each area should inherit the same home rhythm language but have room-specific manners: bathrooms at night stay soft, hallway guides rather than floods, bedroom respects sleep/wind-down.",
+    "x": 240,
+    "y": 100,
+    "wires": []
+  }
+]

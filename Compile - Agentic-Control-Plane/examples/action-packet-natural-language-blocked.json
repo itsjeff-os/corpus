@@ -1,0 +1,16 @@
+{
+  "actionPacketId": "packet_missing_grant",
+  "actions": [
+    {
+      "type": "rename",
+      "capabilityId": "hue.rename_light",
+      "system": "hue",
+      "operationType": "metadata_write",
+      "resourceId": "light_1",
+      "target": "Beta Bedroom",
+      "before": "Beta Spare Room Ceiling 01",
+      "after": "Beta Ceiling 03"
+    }
+  ],
+  "stopConditions": ["resource_id_missing", "current_name_mismatch"]
+}

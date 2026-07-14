@@ -1,0 +1,28 @@
+name = "reasoning-agent"
+main = "src/index.ts"
+compatibility_date = "2026-04-26"
+
+[[d1_databases]]
+binding = "RUNTIME_DB"
+database_name = "reasoning-agent-runtime"
+database_id = "replace-with-cloudflare-d1-id"
+
+[[queues.producers]]
+binding = "REFLECTION_QUEUE"
+queue = "reasoning-agent-reflection"
+
+[[queues.producers]]
+binding = "INGESTION_QUEUE"
+queue = "reasoning-agent-ingestion"
+
+[[queues.producers]]
+binding = "SYNC_QUEUE"
+queue = "reasoning-agent-sync"
+
+[[durable_objects.bindings]]
+name = "SESSION_COORDINATOR"
+class_name = "SessionCoordinator"
+
+[[durable_objects.bindings]]
+name = "TASK_COORDINATOR"
+class_name = "TaskCoordinator"

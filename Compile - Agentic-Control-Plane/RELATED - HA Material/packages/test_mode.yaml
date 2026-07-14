@@ -1,0 +1,4 @@
+input_boolean:
+  test_mode:
+    name: Test Mode
+    icon: mdi:flask

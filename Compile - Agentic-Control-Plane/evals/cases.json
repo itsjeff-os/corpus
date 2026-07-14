@@ -1,0 +1,49 @@
+[
+  {
+    "id": "hue_only_blocks_ha_write",
+    "input": "Apply Hue-only Beta and Splash renames but also write Home Assistant groups",
+    "expect": {
+      "requiredAgents": ["home_map", "home_assistant", "executor"],
+      "blockedCapability": "ha.write_config"
+    }
+  },
+  {
+    "id": "negative_scope_excludes_adjacent_systems",
+    "input": "Apply Hue-only Beta and Splash naming changes. Do not touch Home Assistant or Node-RED.",
+    "expect": {
+      "requiredAgents": ["home_map", "executor"],
+      "forbiddenAgents": ["home_assistant", "node_red"]
+    }
+  },
+  {
+    "id": "docs_requires_audit",
+    "input": "Write confirmed documentation for the live Hue state",
+    "expect": {
+      "requiredAgents": ["documentation", "audit"],
+      "proposedCapability": "docs.write_confirmed"
+    }
+  },
+  {
+    "id": "product_requires_research",
+    "input": "Recommend the best presence sensor to buy today",
+    "expect": {
+      "requiredAgents": ["research"],
+      "evidenceRequirement": "current cited sources"
+    }
+  },
+  {
+    "id": "node_red_restart_blocked",
+    "input": "Restart Node-RED and deploy the new flow",
+    "expect": {
+      "requiredAgents": ["node_red", "executor"],
+      "blockedCapability": "node_red.restart"
+    }
+  },
+  {
+    "id": "compound_task_routes_multiple_agents",
+    "input": "Research product options, audit current docs, and route the work to the right domain",
+    "expect": {
+      "requiredAgents": ["research", "documentation", "audit", "motion_placement"]
+    }
+  }
+]

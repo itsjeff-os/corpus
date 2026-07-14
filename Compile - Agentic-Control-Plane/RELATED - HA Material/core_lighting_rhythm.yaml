@@ -1,0 +1,98 @@
+input_boolean:
+  core_lighting_auto:
+    name: Core Lighting Auto
+    icon: mdi:lightbulb-auto
+    initial: false
+  core_lighting_test_enabled:
+    name: Core Lighting Test Enabled
+    icon: mdi:flask-outline
+    initial: false
+  core_manual_override:
+    name: Core Manual Override
+    icon: mdi:hand-back-right
+    initial: false
+  core_ceiling_allowed:
+    name: Core Ceiling Allowed
+    icon: mdi:ceiling-light
+    initial: true
+
+input_select:
+  core_lighting_phase:
+    name: Core Lighting Phase
+    icon: mdi:theme-light-dark
+    options:
+      - Morning
+      - Day
+      - Golden Hour
+      - Evening
+      - Night
+      - Late Night
+      - Away
+    initial: Day
+  core_activity:
+    name: Core Activity
+    icon: mdi:home-heart
+    options:
+      - Idle
+      - Living
+      - Kitchen
+      - Dining
+      - Media
+      - Cleaning
+      - Manual
+    initial: Idle
+
+input_number:
+  core_ceiling_target_brightness:
+    name: Core Ceiling Target Brightness
+    icon: mdi:brightness-6
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    initial: 35
+  core_ambient_target_brightness:
+    name: Core Ambient Target Brightness
+    icon: mdi:lamp
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    initial: 20
+  core_path_target_brightness:
+    name: Core Path Target Brightness
+    icon: mdi:walk
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    initial: 12
+  core_kitchen_target_brightness:
+    name: Core Kitchen Target Brightness
+    icon: mdi:countertop
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    initial: 45
+  core_target_kelvin:
+    name: Core Target Kelvin
+    icon: mdi:temperature-kelvin
+    min: 2000
+    max: 6500
+    step: 50
+    unit_of_measurement: K
+    initial: 3000
+  core_fade_seconds:
+    name: Core Fade Seconds
+    icon: mdi:transition
+    min: 1
+    max: 1800
+    step: 1
+    unit_of_measurement: s
+    initial: 180
+
+timer:
+  core_manual_override:
+    name: Core Manual Override Timer
+    duration: "00:30:00"
