@@ -1,0 +1,41 @@
+services:
+  head-of-systems:
+    build:
+      context: .
+    container_name: head-of-systems
+    restart: unless-stopped
+    user: "${HOS_UID:-1000}:${HOS_GID:-1000}"
+    env_file:
+      - path: .env
+        required: false
+      - path: /home/sysadmin/ops/secrets/generated/gemini-sandbox.env
+        required: false
+    environment:
+      MODEL: ${MODEL:-gemini/gemini-3.5-flash}
+      MODEL_PRIVATE_CONTEXT_ENABLED: ${MODEL_PRIVATE_CONTEXT_ENABLED:-false}
+      SERVICE_HOST: 0.0.0.0
+      SERVICE_PORT: 5070
+      STAGING_DIR: /app/staging
+      HOME_ASSISTANT_BASE_URL: ${HOME_ASSISTANT_BASE_URL:-http://host.docker.internal:8123}
+      NODE_RED_BASE_URL: ${NODE_RED_BASE_URL:-http://host.docker.internal:1880}
+      RUNTIME_CORE_BASE_URL: ${RUNTIME_CORE_BASE_URL:-http://runtime-core-v1:5061}
+    ports:
+      - "127.0.0.1:5070:5070"
+    volumes:
+      - ./staging:/app/staging
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - lifeos-graph
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  lifeos-graph:
+    name: lifeos-graph
+    driver: bridge
