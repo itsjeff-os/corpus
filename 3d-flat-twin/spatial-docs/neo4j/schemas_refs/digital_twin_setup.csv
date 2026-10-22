@@ -1,0 +1,71 @@
+Neo4j Setup Cypher,,,
+"Run constraints once, then optionally seed node-label and relationship metadata so the schema lives inside Neo4j.",,,
+,,,
+Step 1 — uniqueness constraints,,,
+#,Cypher,When,Purpose
+1,CREATE CONSTRAINT room_id_unique IF NOT EXISTS FOR (n:Room) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+2,CREATE CONSTRAINT zone_id_unique IF NOT EXISTS FOR (n:Zone) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+3,CREATE CONSTRAINT wallsegment_id_unique IF NOT EXISTS FOR (n:WallSegment) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+4,CREATE CONSTRAINT anchor_id_unique IF NOT EXISTS FOR (n:Anchor) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+5,CREATE CONSTRAINT device_id_unique IF NOT EXISTS FOR (n:Device) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+6,CREATE CONSTRAINT sensor_id_unique IF NOT EXISTS FOR (n:Sensor) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+7,CREATE CONSTRAINT actuator_id_unique IF NOT EXISTS FOR (n:Actuator) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+8,CREATE CONSTRAINT infrastructure_id_unique IF NOT EXISTS FOR (n:Infrastructure) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+9,CREATE CONSTRAINT tool_id_unique IF NOT EXISTS FOR (n:Tool) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+10,CREATE CONSTRAINT service_id_unique IF NOT EXISTS FOR (n:Service) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+11,CREATE CONSTRAINT platform_id_unique IF NOT EXISTS FOR (n:Platform) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+12,CREATE CONSTRAINT api_id_unique IF NOT EXISTS FOR (n:API) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+13,CREATE CONSTRAINT domain_id_unique IF NOT EXISTS FOR (n:Domain) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+14,CREATE CONSTRAINT credential_id_unique IF NOT EXISTS FOR (n:Credential) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+15,CREATE CONSTRAINT host_id_unique IF NOT EXISTS FOR (n:Host) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+16,CREATE CONSTRAINT capability_id_unique IF NOT EXISTS FOR (n:Capability) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+17,CREATE CONSTRAINT accesssurface_id_unique IF NOT EXISTS FOR (n:AccessSurface) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+18,CREATE CONSTRAINT protocol_id_unique IF NOT EXISTS FOR (n:Protocol) REQUIRE n.id IS UNIQUE;,Run once,Unique id per node label
+,,,
+,,,
+Step 2 — optional node-label metadata seeds,,,
+#,Cypher,When,Purpose
+1,"MERGE (m:MetaLabel {name: 'Room'}) SET m.layer='Physical', m.definition='Physical space with dimensions', m.example='Open Plan; Alpha; Throne';",Optional,Stores node-label notes as graph metadata
+2,"MERGE (m:MetaLabel {name: 'Zone'}) SET m.layer='Physical', m.definition='Sensor/logical subdivision', m.example='zone.hallway_front; zone.open_plan_fp2';",Optional,Stores node-label notes as graph metadata
+3,"MERGE (m:MetaLabel {name: 'WallSegment'}) SET m.layer='Physical', m.definition='Measured wall section', m.example='seg.core.A-A1 (175cm)';",Optional,Stores node-label notes as graph metadata
+4,"MERGE (m:MetaLabel {name: 'Anchor'}) SET m.layer='Physical', m.definition='Fixed spatial reference', m.example='threshold; balcony_door; kitchen_run';",Optional,Stores node-label notes as graph metadata
+5,"MERGE (m:MetaLabel {name: 'Device'}) SET m.layer='Physical', m.definition='Physical hardware', m.example='Hue lights; Samsung TV; AC unit';",Optional,Stores node-label notes as graph metadata
+6,"MERGE (m:MetaLabel {name: 'Sensor'}) SET m.layer='Physical', m.definition='Detection hardware', m.example='FP2 presence; Hue motion; Withings sleep';",Optional,Stores node-label notes as graph metadata
+7,"MERGE (m:MetaLabel {name: 'Actuator'}) SET m.layer='Physical', m.definition='Physical control', m.example='Hue dial; dimmer switch; smart button';",Optional,Stores node-label notes as graph metadata
+8,"MERGE (m:MetaLabel {name: 'Infrastructure'}) SET m.layer='Physical', m.definition='Network/hub hardware', m.example='Hue Bridge; Aqara M3; UniFi gateway';",Optional,Stores node-label notes as graph metadata
+9,"MERGE (m:MetaLabel {name: 'Tool'}) SET m.layer='Digital', m.definition='Software you use', m.example='n8n; ChatGPT; Raycast; Obsidian';",Optional,Stores node-label notes as graph metadata
+10,"MERGE (m:MetaLabel {name: 'Service'}) SET m.layer='Digital', m.definition='Running software instance', m.example='lifeos-neo4j; mosquitto; Home Assistant';",Optional,Stores node-label notes as graph metadata
+11,"MERGE (m:MetaLabel {name: 'Platform'}) SET m.layer='Digital', m.definition='Vendor surface hosting sub-resources', m.example='Cloudflare; Google Workspace; Supabase';",Optional,Stores node-label notes as graph metadata
+12,"MERGE (m:MetaLabel {name: 'API'}) SET m.layer='Digital', m.definition='Callable interface', m.example='OpenAI API; Home Graph API';",Optional,Stores node-label notes as graph metadata
+13,"MERGE (m:MetaLabel {name: 'Domain'}) SET m.layer='Digital', m.definition='Registered domain', m.example='jeff.org; flatterfest.org';",Optional,Stores node-label notes as graph metadata
+14,"MERGE (m:MetaLabel {name: 'Credential'}) SET m.layer='Digital', m.definition='Auth reference only — never store secrets', m.example='neo4j-password; openai-api-key';",Optional,Stores node-label notes as graph metadata
+15,"MERGE (m:MetaLabel {name: 'Host'}) SET m.layer='Digital', m.definition='Compute surface something runs on', m.example='mini-pc; supabase-cloud; cloudflare-edge';",Optional,Stores node-label notes as graph metadata
+16,"MERGE (m:MetaLabel {name: 'Capability'}) SET m.layer='Integration', m.definition='What a thing can do, classified by kind', m.example='workflow-orchestration; edge-compute; vector-search';",Optional,Stores node-label notes as graph metadata
+17,"MERGE (m:MetaLabel {name: 'AccessSurface'}) SET m.layer='Integration', m.definition='How something can be reached', m.example='api; cli; mcp; webhook; sdk; native-app';",Optional,Stores node-label notes as graph metadata
+18,"MERGE (m:MetaLabel {name: 'Protocol'}) SET m.layer='Integration', m.definition='Communication channel that exists', m.example='mqtt; http; bolt; zigbee; matter; homekit; bluetooth';",Optional,Stores node-label notes as graph metadata
+,,,
+,,,
+Step 3 — optional relationship metadata seeds,,,
+#,Cypher,When,Purpose
+1,"MERGE (m:MetaRelationship {name: 'NEIGHBORS'}) SET m.category='Spatial', m.from_label='Room', m.to_label='Room', m.meaning='Rooms sharing a boundary', m.example='(:Room {id:""alpha""})-[:NEIGHBORS]-(:Room {id:""pass""})';",Optional,Stores relationship-type notes as graph metadata
+2,"MERGE (m:MetaRelationship {name: 'PART_OF'}) SET m.category='Spatial', m.from_label='Any node', m.to_label='Any node', m.meaning='Logical containment', m.example='(:Room {id:""walk_in""})-[:PART_OF]->(:Room {id:""beta""})';",Optional,Stores relationship-type notes as graph metadata
+3,"MERGE (m:MetaRelationship {name: 'LOCATED_IN'}) SET m.category='Spatial', m.from_label='Device', m.to_label='Room', m.meaning='Physical placement', m.example='(:Device {id:""samsung_tv""})-[:LOCATED_IN]->(:Room {id:""open_plan""})';",Optional,Stores relationship-type notes as graph metadata
+4,"MERGE (m:MetaRelationship {name: 'SEGMENT_OF'}) SET m.category='Spatial', m.from_label='WallSegment', m.to_label='Room', m.meaning='Wall section of room', m.example='(:WallSegment {id:""seg_core_a_a1""})-[:SEGMENT_OF]->(:Room {id:""open_plan""})';",Optional,Stores relationship-type notes as graph metadata
+5,"MERGE (m:MetaRelationship {name: 'ANCHOR_OF'}) SET m.category='Spatial', m.from_label='Anchor', m.to_label='Room', m.meaning='Fixed reference in room', m.example='(:Anchor {id:""threshold""})-[:ANCHOR_OF]->(:Room {id:""open_plan""})';",Optional,Stores relationship-type notes as graph metadata
+6,"MERGE (m:MetaRelationship {name: 'ZONE_OF'}) SET m.category='Spatial', m.from_label='Zone', m.to_label='Room', m.meaning='Zone belongs to room', m.example='(:Zone {id:""zone_hallway_front""})-[:ZONE_OF]->(:Room {id:""hallway""})';",Optional,Stores relationship-type notes as graph metadata
+7,"MERGE (m:MetaRelationship {name: 'MONITORS'}) SET m.category='Spatial', m.from_label='Sensor', m.to_label='Zone', m.meaning='Sensor watches zone', m.example='(:Sensor {id:""fp2""})-[:MONITORS]->(:Zone {id:""zone_open_plan_fp2""})';",Optional,Stores relationship-type notes as graph metadata
+8,"MERGE (m:MetaRelationship {name: 'MANAGED_BY'}) SET m.category='Management', m.from_label='Device', m.to_label='Infrastructure', m.meaning='Device controlled by bridge', m.example='(:Device {id:""hue_lights""})-[:MANAGED_BY]->(:Infrastructure {id:""hue_bridge""})';",Optional,Stores relationship-type notes as graph metadata
+9,"MERGE (m:MetaRelationship {name: 'CONTROLS'}) SET m.category='Management', m.from_label='Infrastructure', m.to_label='Device', m.meaning='Infrastructure manages devices', m.example='(:Infrastructure {id:""ha_server""})-[:CONTROLS]->(:Device {id:""hue_lights""})';",Optional,Stores relationship-type notes as graph metadata
+10,"MERGE (m:MetaRelationship {name: 'AUTHENTICATES_VIA'}) SET m.category='Management', m.from_label='Service', m.to_label='Credential', m.meaning='What credential a service uses', m.example='(:Service {id:""neo4j""})-[:AUTHENTICATES_VIA]->(:Credential {id:""neo4j_password""})';",Optional,Stores relationship-type notes as graph metadata
+11,"MERGE (m:MetaRelationship {name: 'DEPENDS_ON'}) SET m.category='Structural', m.from_label='Any node', m.to_label='Any node', m.meaning='Will not work without', m.example='(:Service {id:""home_graph_api""})-[:DEPENDS_ON]->(:Service {id:""neo4j""})';",Optional,Stores relationship-type notes as graph metadata
+12,"MERGE (m:MetaRelationship {name: 'RUNS_ON'}) SET m.category='Structural', m.from_label='Service', m.to_label='Host', m.meaning='Hosted by', m.example='(:Service {id:""neo4j""})-[:RUNS_ON]->(:Host {id:""mini_pc""})';",Optional,Stores relationship-type notes as graph metadata
+13,"MERGE (m:MetaRelationship {name: 'BELONGS_TO'}) SET m.category='Structural', m.from_label='Any node', m.to_label='Platform', m.meaning='Child of platform/suite', m.example='(:Service {id:""workers""})-[:BELONGS_TO]->(:Platform {id:""cloudflare""})';",Optional,Stores relationship-type notes as graph metadata
+14,"MERGE (m:MetaRelationship {name: 'OVERLAPS_WITH'}) SET m.category='Structural', m.from_label='Any node', m.to_label='Any node', m.meaning='Similar ground', m.example='(:Tool {id:""zapier""})-[:OVERLAPS_WITH]-(:Tool {id:""n8n""})';",Optional,Stores relationship-type notes as graph metadata
+15,"MERGE (m:MetaRelationship {name: 'REPLACES'}) SET m.category='Structural', m.from_label='Any node', m.to_label='Any node', m.meaning='Succession / future replacement', m.example='(:Tool {id:""new_tool""})-[:REPLACES]->(:Tool {id:""old_tool""})';",Optional,Stores relationship-type notes as graph metadata
+16,"MERGE (m:MetaRelationship {name: 'CAN_READ_FROM'}) SET m.category='Integration', m.from_label='Any node', m.to_label='Any node', m.meaning='Built integration to read exists', m.example='(:Tool {id:""node_red""})-[:CAN_READ_FROM]->(:Protocol {id:""mqtt""})';",Optional,Stores relationship-type notes as graph metadata
+17,"MERGE (m:MetaRelationship {name: 'CAN_WRITE_TO'}) SET m.category='Integration', m.from_label='Any node', m.to_label='Any node', m.meaning='Built integration to write exists', m.example='(:Tool {id:""n8n""})-[:CAN_WRITE_TO]->(:Platform {id:""supabase""})';",Optional,Stores relationship-type notes as graph metadata
+18,"MERGE (m:MetaRelationship {name: 'CAN_TRIGGER'}) SET m.category='Integration', m.from_label='Any node', m.to_label='Any node', m.meaning='Can invoke', m.example='(:Tool {id:""raycast""})-[:CAN_TRIGGER]->(:Service {id:""local_scripts""})';",Optional,Stores relationship-type notes as graph metadata
+19,"MERGE (m:MetaRelationship {name: 'EXPOSES'}) SET m.category='Integration', m.from_label='Any node', m.to_label='AccessSurface or API', m.meaning='Makes available', m.example='(:Tool {id:""home_graph_api""})-[:EXPOSES]->(:AccessSurface {id:""webhook""})';",Optional,Stores relationship-type notes as graph metadata
+20,"MERGE (m:MetaRelationship {name: 'COMMUNICATES_VIA'}) SET m.category='Integration', m.from_label='Any node', m.to_label='Protocol', m.meaning='Uses this protocol', m.example='(:Device {id:""hue_lights""})-[:COMMUNICATES_VIA]->(:Protocol {id:""zigbee""})';",Optional,Stores relationship-type notes as graph metadata
+21,"MERGE (m:MetaRelationship {name: 'HAS_CAPABILITY'}) SET m.category='Capability', m.from_label='Any node', m.to_label='Capability', m.meaning='What a thing can do', m.example='(:Tool {id:""n8n""})-[:HAS_CAPABILITY]->(:Capability {id:""workflow_orchestration""})';",Optional,Stores relationship-type notes as graph metadata
+22,"MERGE (m:MetaRelationship {name: 'REQUIRES'}) SET m.category='Capability', m.from_label='Any node', m.to_label='Capability', m.meaning='Needs this capability to function', m.example='(:Service {id:""home_graph_api""})-[:REQUIRES]->(:Capability {id:""graph_database""})';",Optional,Stores relationship-type notes as graph metadata

@@ -1,0 +1,1524 @@
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: **/node_modules/**, **/.venv/**, **/dist/**, **/build/**, **/*.lock
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+public/
+  pcm-capture-worklet.js
+server/
+  index.ts
+  prompt.ts
+src/
+  App.tsx
+  audio.test.ts
+  audio.ts
+  main.tsx
+  styles.css
+.env.example
+.gitignore
+index.html
+package.json
+README.md
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="public/pcm-capture-worklet.js">
+class ConciergePcmCapture extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.pending = [];
+    this.outputRate = 24000;
+    this.chunkSamples = 480;
+    this.readPosition = 0;
+  }
+
+  process(inputs) {
+    const channel = inputs[0]?.[0];
+    if (!channel?.length) return true;
+
+    const ratio = sampleRate / this.outputRate;
+    while (this.readPosition < channel.length) {
+      const index = Math.floor(this.readPosition);
+      const next = Math.min(index + 1, channel.length - 1);
+      const mix = this.readPosition - index;
+      const sample = channel[index] + (channel[next] - channel[index]) * mix;
+      this.pending.push(Math.max(-1, Math.min(1, sample)));
+      this.readPosition += ratio;
+    }
+    this.readPosition -= channel.length;
+
+    while (this.pending.length >= this.chunkSamples) {
+      const buffer = new ArrayBuffer(this.chunkSamples * 2);
+      const view = new DataView(buffer);
+      for (let index = 0; index < this.chunkSamples; index += 1) {
+        const sample = this.pending[index];
+        view.setInt16(index * 2, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      }
+      this.pending.splice(0, this.chunkSamples);
+      this.port.postMessage(buffer, [buffer]);
+    }
+
+    return true;
+  }
+}
+
+registerProcessor("concierge-pcm-capture", ConciergePcmCapture);
+</file>
+
+<file path="server/index.ts">
+import "dotenv/config";
+import dotenv from "dotenv";
+import express from "express";
+import { createServer } from "node:http";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import WebSocket, { WebSocketServer } from "ws";
+import { CONCIERGE_INSTRUCTIONS } from "./prompt.js";
+
+dotenv.config({ path: ".env.local", override: true });
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(__dirname, "..");
+const port = Number(process.env.PORT ?? 8787);
+const model = process.env.REALTIME_MODEL ?? "gpt-realtime-2.1";
+const voice = process.env.REALTIME_VOICE ?? "marin";
+const transcriptionModel = process.env.TRANSCRIPTION_MODEL ?? "gpt-live-transcribe";
+
+const app = express();
+app.disable("x-powered-by");
+
+app.get("/api/health", (_request, response) => {
+  response.json({
+    ok: true,
+    gateway: process.env.CLOUDFLARE_AI_GATEWAY_ID ?? "api-gateway",
+    model,
+    configured: Boolean(
+      process.env.CLOUDFLARE_ACCOUNT_ID &&
+        process.env.CLOUDFLARE_AI_GATEWAY_TOKEN,
+    ),
+  });
+});
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(root, "dist")));
+  app.get("/{*path}", (_request, response) => {
+    response.sendFile(path.join(root, "dist", "index.html"));
+  });
+}
+
+const server = createServer(app);
+const browserSockets = new WebSocketServer({ noServer: true, maxPayload: 512 * 1024 });
+
+function relayEvent(socket: WebSocket, event: unknown) {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(event));
+  }
+}
+
+function bearer(value: string) {
+  return value.toLowerCase().startsWith("bearer ") ? value : `Bearer ${value}`;
+}
+
+function openGatewaySocket() {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const gatewayId = process.env.CLOUDFLARE_AI_GATEWAY_ID ?? "api-gateway";
+  const gatewayToken = process.env.CLOUDFLARE_AI_GATEWAY_TOKEN;
+  const providerKey = process.env.OPENAI_API_KEY;
+
+  if (!accountId || !gatewayToken) {
+    throw new Error(
+      "Cloudflare AI Gateway is not configured. Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_AI_GATEWAY_TOKEN.",
+    );
+  }
+
+  const url = new URL(
+    `wss://gateway.ai.cloudflare.com/v1/${encodeURIComponent(accountId)}/${encodeURIComponent(gatewayId)}/openai`,
+  );
+  url.searchParams.set("model", model);
+
+  const headers: Record<string, string> = {
+    "cf-aig-authorization": bearer(gatewayToken),
+    "cf-aig-collect-log-payload": "false",
+    "OpenAI-Beta": "realtime=v1",
+  };
+
+  // Cloudflare BYOK can supply the provider credential. If it is not configured,
+  // the normal OpenAI key remains server-only and is forwarded upstream here.
+  if (providerKey) {
+    headers.Authorization = bearer(providerKey);
+  }
+
+  return new WebSocket(url, { headers, handshakeTimeout: 10_000 });
+}
+
+const allowedBrowserEvents = new Set([
+  "input_audio_buffer.append",
+  "input_audio_buffer.clear",
+  "response.cancel",
+]);
+
+browserSockets.on("connection", (browser) => {
+  let upstream: WebSocket;
+
+  relayEvent(browser, { type: "concierge.upstream.connecting", model });
+
+  try {
+    upstream = openGatewaySocket();
+  } catch (error) {
+    relayEvent(browser, {
+      type: "concierge.relay.error",
+      message: error instanceof Error ? error.message : "Gateway configuration failed.",
+      recoverable: false,
+    });
+    browser.close(1011, "Gateway configuration failed");
+    return;
+  }
+
+  upstream.on("open", () => {
+    relayEvent(browser, { type: "concierge.upstream.open", model });
+    upstream.send(
+      JSON.stringify({
+        type: "session.update",
+        session: {
+          type: "realtime",
+          model,
+          instructions: CONCIERGE_INSTRUCTIONS,
+          output_modalities: ["audio"],
+          max_output_tokens: 1400,
+          audio: {
+            input: {
+              format: { type: "audio/pcm", rate: 24000 },
+              transcription: {
+                model: transcriptionModel,
+                delay: "low",
+                prompt: "A live creative strategy and worldbuilding session. Expect invented names, systems language, and playful metaphors.",
+              },
+              turn_detection: {
+                type: "semantic_vad",
+                eagerness: "auto",
+                create_response: true,
+                interrupt_response: true,
+              },
+            },
+            output: {
+              format: { type: "audio/pcm", rate: 24000 },
+              voice,
+            },
+          },
+        },
+      }),
+    );
+  });
+
+  upstream.on("message", (data, isBinary) => {
+    if (browser.readyState === WebSocket.OPEN) {
+      browser.send(data, { binary: isBinary });
+    }
+  });
+
+  upstream.on("error", (error) => {
+    console.error("Realtime gateway error:", error.message);
+    relayEvent(browser, {
+      type: "concierge.relay.error",
+      message: "The gateway connection failed. Check the relay logs and credentials.",
+      recoverable: true,
+    });
+  });
+
+  upstream.on("close", (code, reason) => {
+    relayEvent(browser, {
+      type: "concierge.upstream.closed",
+      code,
+      reason: reason.toString(),
+    });
+    if (browser.readyState === WebSocket.OPEN) browser.close(1012, "Upstream closed");
+  });
+
+  browser.on("message", (data, isBinary) => {
+    if (isBinary || upstream.readyState !== WebSocket.OPEN) return;
+
+    try {
+      const event = JSON.parse(data.toString()) as { type?: string; audio?: unknown };
+      if (!event.type || !allowedBrowserEvents.has(event.type)) return;
+      if (event.type === "input_audio_buffer.append" && typeof event.audio !== "string") return;
+      upstream.send(JSON.stringify(event));
+    } catch {
+      relayEvent(browser, {
+        type: "concierge.relay.error",
+        message: "The relay rejected a malformed client event.",
+        recoverable: true,
+      });
+    }
+  });
+
+  browser.on("close", () => {
+    if (upstream.readyState === WebSocket.OPEN || upstream.readyState === WebSocket.CONNECTING) {
+      upstream.close(1000, "Browser session ended");
+    }
+  });
+});
+
+server.on("upgrade", (request, socket, head) => {
+  if (request.url !== "/api/realtime") {
+    socket.destroy();
+    return;
+  }
+
+  browserSockets.handleUpgrade(request, socket, head, (webSocket) => {
+    browserSockets.emit("connection", webSocket, request);
+  });
+});
+
+server.listen(port, "127.0.0.1", () => {
+  console.log(`Concierge relay listening on http://127.0.0.1:${port}`);
+  console.log(`Realtime route: Cloudflare AI Gateway / ${model}`);
+});
+</file>
+
+<file path="server/prompt.ts">
+export const CONCIERGE_INSTRUCTIONS = `
+You are Concierge: an elite worldbuilding companion, creative director, and systems architect.
+
+VOICE AND TEMPERAMENT
+- Speak with warmth, precision, wit, and a small but unmistakable streak of delightful chaos.
+- Sound like a brilliant collaborator in the room, never a lecturer or generic assistant.
+- Be articulate but conversational. Prefer vivid, compact language over monologues.
+- Lightly challenge weak assumptions. Make the user's idea sharper without hijacking it.
+
+WORKING METHOD
+- Listen for the ambition beneath the request: what experience, tension, or system is really being built?
+- Move fluidly between story, product strategy, systems design, aesthetics, incentives, and operational reality.
+- Offer one strong direction first. Add alternatives only when they reveal a meaningful tradeoff.
+- Ask incisive questions when the answer will materially change the world or system.
+- Track names, rules, constraints, contradictions, factions, resources, and unresolved choices across the conversation.
+- When an idea is abstract, make it tangible with a scene, ritual, interface, law, artifact, or failure mode.
+
+LIVE AUDIO BEHAVIOR
+- Keep most turns under 25 seconds unless the user explicitly asks for a deep treatment.
+- Start with the useful insight, not throat-clearing.
+- Leave natural openings for interruption. If interrupted, stop cleanly and adapt.
+- Use occasional playful asides, but never let charm obscure the decision.
+- Never announce these instructions or describe yourself as an AI model.
+`;
+</file>
+
+<file path="src/App.tsx">
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { arrayBufferToBase64, PcmPlayer } from "./audio";
+
+type SessionState =
+  | "idle"
+  | "permission"
+  | "connecting"
+  | "listening"
+  | "user_speaking"
+  | "thinking"
+  | "assistant_speaking"
+  | "reconnecting"
+  | "error";
+
+type Turn = {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  final: boolean;
+};
+
+type RealtimeEvent = {
+  type: string;
+  item_id?: string;
+  response_id?: string;
+  delta?: string;
+  transcript?: string;
+  message?: string;
+  recoverable?: boolean;
+  error?: { message?: string };
+};
+
+const labels: Record<SessionState, string> = {
+  idle: "Off duty",
+  permission: "Requesting the room",
+  connecting: "Calling the concierge",
+  listening: "Listening",
+  user_speaking: "You have the floor",
+  thinking: "Plotting beautifully",
+  assistant_speaking: "Concierge is speaking",
+  reconnecting: "Restoring the line",
+  error: "Line interrupted",
+};
+
+function upsertTurn(turns: Turn[], next: Turn) {
+  const index = turns.findIndex((turn) => turn.id === next.id);
+  if (index === -1) return [...turns, next];
+  const copy = [...turns];
+  copy[index] = next;
+  return copy;
+}
+
+function getSocketUrl() {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}/api/realtime`;
+}
+
+export default function App() {
+  const [status, setStatus] = useState<SessionState>("idle");
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [micMuted, setMicMuted] = useState(false);
+  const [soundMuted, setSoundMuted] = useState(false);
+  const [level, setLevel] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [modelLabel, setModelLabel] = useState("Realtime model");
+
+  const socketRef = useRef<WebSocket | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const contextRef = useRef<AudioContext | null>(null);
+  const playerRef = useRef<PcmPlayer | null>(null);
+  const workletRef = useRef<AudioWorkletNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const reconnectTimerRef = useRef<number | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const shouldReconnectRef = useRef(false);
+  const micMutedRef = useRef(false);
+  const soundMutedRef = useRef(false);
+  const transcriptEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    micMutedRef.current = micMuted;
+  }, [micMuted]);
+
+  useEffect(() => {
+    soundMutedRef.current = soundMuted;
+    if (soundMuted) playerRef.current?.clear();
+  }, [soundMuted]);
+
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [turns]);
+
+  useEffect(() => {
+    let animation = 0;
+    const data = new Uint8Array(64);
+    const update = () => {
+      const analyser = analyserRef.current;
+      if (analyser && !micMutedRef.current) {
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (const sample of data) {
+          const centered = (sample - 128) / 128;
+          sum += centered * centered;
+        }
+        setLevel(Math.min(1, Math.sqrt(sum / data.length) * 4.5));
+      } else {
+        setLevel(0);
+      }
+      animation = requestAnimationFrame(update);
+    };
+    animation = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(animation);
+  }, []);
+
+  const updateTranscript = useCallback(
+    (event: RealtimeEvent, role: Turn["role"], done: boolean) => {
+      const id = event.item_id ?? event.response_id ?? `${role}-active`;
+      setTurns((current) => {
+        const previous = current.find((turn) => turn.id === id);
+        const text = done
+          ? (event.transcript ?? previous?.text ?? "")
+          : `${previous?.text ?? ""}${event.delta ?? ""}`;
+        if (!text.trim()) return current;
+        return upsertTurn(current, { id, role, text, final: done });
+      });
+    },
+    [],
+  );
+
+  const handleRealtimeEvent = useCallback(
+    (event: RealtimeEvent) => {
+      switch (event.type) {
+        case "concierge.upstream.connecting":
+          setStatus(reconnectAttemptsRef.current ? "reconnecting" : "connecting");
+          break;
+        case "concierge.upstream.open":
+          setModelLabel((event as RealtimeEvent & { model?: string }).model ?? "Realtime model");
+          break;
+        case "session.updated":
+          reconnectAttemptsRef.current = 0;
+          setErrorMessage("");
+          setStatus("listening");
+          break;
+        case "input_audio_buffer.speech_started":
+          playerRef.current?.clear();
+          setStatus("user_speaking");
+          break;
+        case "input_audio_buffer.speech_stopped":
+          setStatus("thinking");
+          break;
+        case "response.created":
+          setStatus("thinking");
+          break;
+        case "response.output_audio.delta":
+          setStatus("assistant_speaking");
+          if (!soundMutedRef.current && event.delta) playerRef.current?.enqueue(event.delta);
+          break;
+        case "response.output_audio.done":
+        case "response.done":
+          setStatus("listening");
+          break;
+        case "conversation.item.input_audio_transcription.delta":
+          updateTranscript(event, "user", false);
+          break;
+        case "conversation.item.input_audio_transcription.completed":
+          updateTranscript(event, "user", true);
+          break;
+        case "response.output_audio_transcript.delta":
+          updateTranscript(event, "assistant", false);
+          break;
+        case "response.output_audio_transcript.done":
+          updateTranscript(event, "assistant", true);
+          break;
+        case "concierge.relay.error":
+        case "error":
+          setErrorMessage(event.message ?? event.error?.message ?? "The realtime session reported an error.");
+          if (event.recoverable === false || event.type === "error") setStatus("error");
+          break;
+      }
+    },
+    [updateTranscript],
+  );
+
+  const openSocket = useCallback(() => {
+    const socket = new WebSocket(getSocketUrl());
+    socketRef.current = socket;
+    setStatus(reconnectAttemptsRef.current ? "reconnecting" : "connecting");
+
+    socket.addEventListener("message", (message) => {
+      try {
+        handleRealtimeEvent(JSON.parse(message.data as string) as RealtimeEvent);
+      } catch {
+        setErrorMessage("A malformed gateway event was ignored.");
+      }
+    });
+
+    socket.addEventListener("close", (event) => {
+      if (socketRef.current === socket) socketRef.current = null;
+      if (!shouldReconnectRef.current) return;
+
+      if (event.code === 1000) {
+        setStatus("idle");
+        return;
+      }
+
+      if (reconnectAttemptsRef.current >= 3) {
+        setErrorMessage("The line could not be restored after three attempts. Check the relay and try again.");
+        setStatus("error");
+        shouldReconnectRef.current = false;
+        return;
+      }
+
+      reconnectAttemptsRef.current += 1;
+      setStatus("reconnecting");
+      const wait = 500 * 2 ** (reconnectAttemptsRef.current - 1);
+      reconnectTimerRef.current = window.setTimeout(openSocket, wait);
+    });
+
+    socket.addEventListener("error", () => {
+      setErrorMessage("The browser could not reach the realtime relay.");
+    });
+  }, [handleRealtimeEvent]);
+
+  const prepareAudio = useCallback(async () => {
+    if (streamRef.current && contextRef.current) return;
+
+    setStatus("permission");
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        channelCount: 1,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
+
+    const context = new AudioContext({ latencyHint: "interactive", sampleRate: 24000 });
+    await context.audioWorklet.addModule("/pcm-capture-worklet.js");
+    await context.resume();
+
+    const source = context.createMediaStreamSource(stream);
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 128;
+    analyser.smoothingTimeConstant = 0.72;
+    const capture = new AudioWorkletNode(context, "concierge-pcm-capture");
+    const silent = context.createGain();
+    silent.gain.value = 0;
+
+    source.connect(analyser);
+    analyser.connect(capture);
+    capture.connect(silent);
+    silent.connect(context.destination);
+
+    capture.port.onmessage = (message: MessageEvent<ArrayBuffer>) => {
+      const socket = socketRef.current;
+      if (micMutedRef.current || socket?.readyState !== WebSocket.OPEN) return;
+      socket.send(
+        JSON.stringify({
+          type: "input_audio_buffer.append",
+          audio: arrayBufferToBase64(message.data),
+        }),
+      );
+    };
+
+    streamRef.current = stream;
+    contextRef.current = context;
+    playerRef.current = new PcmPlayer(context);
+    workletRef.current = capture;
+    analyserRef.current = analyser;
+  }, []);
+
+  const startSession = useCallback(async () => {
+    setErrorMessage("");
+    try {
+      await prepareAudio();
+      shouldReconnectRef.current = true;
+      reconnectAttemptsRef.current = 0;
+      openSocket();
+    } catch (error) {
+      const denied = error instanceof DOMException && error.name === "NotAllowedError";
+      setErrorMessage(
+        denied
+          ? "Microphone permission was declined. Allow access in your browser settings, then try again."
+          : "The microphone could not be prepared. Check that an input device is available.",
+      );
+      setStatus("error");
+    }
+  }, [openSocket, prepareAudio]);
+
+  const endSession = useCallback(() => {
+    shouldReconnectRef.current = false;
+    if (reconnectTimerRef.current) window.clearTimeout(reconnectTimerRef.current);
+    socketRef.current?.close(1000, "Session ended by user");
+    socketRef.current = null;
+    playerRef.current?.clear();
+    workletRef.current?.disconnect();
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    void contextRef.current?.close();
+    streamRef.current = null;
+    contextRef.current = null;
+    playerRef.current = null;
+    workletRef.current = null;
+    analyserRef.current = null;
+    setMicMuted(false);
+    setSoundMuted(false);
+    setStatus("idle");
+  }, []);
+
+  useEffect(() => endSession, [endSession]);
+
+  const isLive = status !== "idle" && status !== "error";
+  const energy = status === "assistant_speaking" ? 0.82 : status === "thinking" ? 0.35 : level;
+  const bars = useMemo(() => Array.from({ length: 31 }), []);
+
+  return (
+    <main className={`app state-${status}`}>
+      <div className="grain" aria-hidden="true" />
+      <header className="topbar">
+        <a className="brand" href="#top" aria-label="Concierge home">
+          <span className="brand-mark">C</span>
+          <span>CONCIERGE</span>
+        </a>
+        <div className="session-pill" aria-live="polite">
+          <span className="status-dot" />
+          {labels[status]}
+        </div>
+        <div className="model-tag">{modelLabel}</div>
+      </header>
+
+      <section className="workspace" id="top">
+        <div className="stage">
+          <div className="kicker">LIVE WORLDBUILDING · STRATEGY · SYSTEMS</div>
+          <div className="title-lockup">
+            <p>Your most interesting ideas</p>
+            <h1>deserve a co-conspirator.</h1>
+          </div>
+
+          <div className="orb-wrap" aria-label={`Session status: ${labels[status]}`}>
+            <div className="orbit orbit-one"><span>TACTICS</span></div>
+            <div className="orbit orbit-two"><span>MYTH</span></div>
+            <div className="orb-shadow" />
+            <button
+              className="orb"
+              type="button"
+              onClick={isLive ? endSession : startSession}
+              aria-label={isLive ? "End live session" : "Begin live session"}
+            >
+              <span className="orb-glint" />
+              <span className="orb-label">{isLive ? "LIVE" : "CALL"}</span>
+              <span className="orb-sub">{isLive ? labels[status] : "THE CONCIERGE"}</span>
+            </button>
+          </div>
+
+          <div className="waveform" aria-hidden="true">
+            {bars.map((_, index) => {
+              const distance = Math.abs(index - bars.length / 2) / (bars.length / 2);
+              const shape = Math.max(0.18, 1 - distance * 0.72);
+              const variance = 0.68 + ((index * 17) % 9) / 20;
+              const height = 8 + energy * 62 * shape * variance;
+              return <span key={index} style={{ height: `${height}px` }} />;
+            })}
+          </div>
+
+          <div className="controls">
+            <button
+              className="icon-button"
+              type="button"
+              disabled={!isLive}
+              onClick={() => setMicMuted((current) => !current)}
+              aria-pressed={micMuted}
+            >
+              <span className="control-icon">{micMuted ? "×" : "●"}</span>
+              {micMuted ? "Mic paused" : "Mic live"}
+            </button>
+            <button className={`primary-button ${isLive ? "danger" : ""}`} type="button" onClick={isLive ? endSession : startSession}>
+              {isLive ? "End session" : status === "error" ? "Try again" : "Begin session"}
+            </button>
+            <button
+              className="icon-button"
+              type="button"
+              disabled={!isLive}
+              onClick={() => setSoundMuted((current) => !current)}
+              aria-pressed={soundMuted}
+            >
+              <span className="control-icon">{soundMuted ? "×" : "◖"}</span>
+              {soundMuted ? "Voice muted" : "Voice on"}
+            </button>
+          </div>
+
+          {errorMessage && <div className="error-banner" role="alert">{errorMessage}</div>}
+
+          <div className="starter-grid" aria-label="Conversation starters">
+            <span>TRY OPENING WITH</span>
+            <button type="button">“Stress-test this world.”</button>
+            <button type="button">“What am I not seeing?”</button>
+            <button type="button">“Make this stranger.”</button>
+          </div>
+        </div>
+
+        <aside className="transcript-panel">
+          <div className="panel-head">
+            <div>
+              <span className="eyebrow">THE ROOM</span>
+              <h2>Working notes</h2>
+            </div>
+            <button type="button" className="clear-button" onClick={() => setTurns([])} disabled={!turns.length}>
+              Clear
+            </button>
+          </div>
+
+          <div className="transcript" aria-live="polite">
+            {!turns.length ? (
+              <div className="empty-state">
+                <span className="asterisk">✦</span>
+                <p>The useful bits will gather here as you speak.</p>
+                <small>Transcripts are session-local and disappear on refresh.</small>
+              </div>
+            ) : (
+              turns.map((turn, index) => (
+                <article className={`turn ${turn.role}`} key={turn.id}>
+                  <div className="turn-meta">
+                    <span>{turn.role === "user" ? "YOU" : "CONCIERGE"}</span>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                  </div>
+                  <p>{turn.text}<span className={turn.final ? "" : "cursor"} /></p>
+                </article>
+              ))
+            )}
+            <div ref={transcriptEndRef} />
+          </div>
+
+          <footer className="panel-foot">
+            <span>EPHEMERAL SESSION</span>
+            <span className="privacy-mark">NO SECRETS IN BROWSER</span>
+          </footer>
+        </aside>
+      </section>
+    </main>
+  );
+}
+</file>
+
+<file path="src/audio.test.ts">
+import { describe, expect, it, vi } from "vitest";
+import { arrayBufferToBase64, base64ToPcm16 } from "./audio";
+
+vi.stubGlobal("btoa", (value: string) => Buffer.from(value, "binary").toString("base64"));
+vi.stubGlobal("atob", (value: string) => Buffer.from(value, "base64").toString("binary"));
+
+describe("PCM transport encoding", () => {
+  it("round-trips signed 16-bit samples", () => {
+    const source = new Int16Array([-32768, -1, 0, 1, 32767]);
+    const encoded = arrayBufferToBase64(source.buffer);
+    expect(Array.from(base64ToPcm16(encoded))).toEqual(Array.from(source));
+  });
+});
+</file>
+
+<file path="src/audio.ts">
+export function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += 1) {
+    binary += String.fromCharCode(bytes[index]);
+  }
+  return btoa(binary);
+}
+
+export function base64ToPcm16(value: string): Int16Array {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return new Int16Array(bytes.buffer);
+}
+
+export class PcmPlayer {
+  private cursor = 0;
+  private sources = new Set<AudioBufferSourceNode>();
+
+  constructor(
+    private readonly context: AudioContext,
+    private readonly sampleRate = 24000,
+  ) {}
+
+  enqueue(base64Audio: string) {
+    const pcm = base64ToPcm16(base64Audio);
+    const audioBuffer = this.context.createBuffer(1, pcm.length, this.sampleRate);
+    const channel = audioBuffer.getChannelData(0);
+    for (let index = 0; index < pcm.length; index += 1) {
+      channel[index] = pcm[index] / 0x8000;
+    }
+
+    const source = this.context.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(this.context.destination);
+    source.addEventListener("ended", () => this.sources.delete(source));
+
+    const now = this.context.currentTime;
+    if (this.cursor < now) this.cursor = now + 0.025;
+    source.start(this.cursor);
+    this.cursor += audioBuffer.duration;
+    this.sources.add(source);
+  }
+
+  clear() {
+    for (const source of this.sources) {
+      try {
+        source.stop();
+      } catch {
+        // Already stopped.
+      }
+    }
+    this.sources.clear();
+    this.cursor = this.context.currentTime;
+  }
+}
+</file>
+
+<file path="src/main.tsx">
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./styles.css";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
+</file>
+
+<file path="src/styles.css">
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #f3f0e8;
+  background: #10100f;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --ink: #10100f;
+  --paper: #f3f0e8;
+  --acid: #d8ff5f;
+  --orange: #ff6b3d;
+  --pink: #ff75b7;
+  --muted: #9d9b93;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { min-height: 100%; margin: 0; }
+
+button, a { font: inherit; }
+button { color: inherit; }
+
+.app {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(216, 255, 95, 0.055), transparent 24rem),
+    radial-gradient(circle at 80% 75%, rgba(255, 107, 61, 0.055), transparent 30rem),
+    var(--ink);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  z-index: 10;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+.topbar {
+  height: 72px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 32px;
+  border-bottom: 1px solid rgba(243, 240, 232, 0.14);
+}
+
+.brand {
+  color: var(--paper);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.19em;
+}
+
+.brand-mark {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--paper);
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 17px;
+}
+
+.session-pill {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(243, 240, 232, 0.22);
+  border-radius: 99px;
+  padding: 8px 13px;
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: #d5d2c9;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #77756f;
+  box-shadow: 0 0 0 4px rgba(119, 117, 111, 0.12);
+  transition: 250ms ease;
+}
+
+.state-listening .status-dot,
+.state-user_speaking .status-dot,
+.state-assistant_speaking .status-dot {
+  background: var(--acid);
+  box-shadow: 0 0 0 4px rgba(216, 255, 95, 0.12), 0 0 18px rgba(216, 255, 95, 0.7);
+}
+
+.state-connecting .status-dot,
+.state-reconnecting .status-dot,
+.state-thinking .status-dot { background: var(--orange); animation: blink 1s infinite; }
+.state-error .status-dot { background: #ff425c; }
+
+.model-tag {
+  justify-self: end;
+  color: #77756f;
+  font: 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
+}
+
+.workspace {
+  min-height: calc(100vh - 72px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 29vw);
+}
+
+.stage {
+  min-height: calc(100vh - 72px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 42px 42px 28px;
+}
+
+.kicker, .eyebrow {
+  color: var(--acid);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.title-lockup { text-align: center; margin-top: 18px; }
+.title-lockup p { margin: 0; color: #a9a69e; font: italic 19px Georgia, serif; }
+.title-lockup h1 {
+  margin: 2px 0 0;
+  font: 400 clamp(33px, 4vw, 63px)/0.96 Georgia, "Times New Roman", serif;
+  letter-spacing: -0.045em;
+}
+
+.orb-wrap {
+  width: min(42vh, 400px);
+  aspect-ratio: 1;
+  margin-top: clamp(20px, 3vh, 42px);
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.orb {
+  position: relative;
+  z-index: 3;
+  width: 58%;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #161711;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255,255,255,0.92) 0, rgba(255,255,255,0.08) 17%, transparent 33%),
+    radial-gradient(circle at 58% 64%, #e7ff90 0, var(--acid) 33%, #a8d914 75%, #658500 100%);
+  box-shadow:
+    inset -22px -28px 52px rgba(34, 52, 0, 0.34),
+    inset 14px 12px 30px rgba(255, 255, 255, 0.35),
+    0 20px 70px rgba(175, 231, 20, 0.22);
+  transition: transform 300ms cubic-bezier(.2,.8,.2,1), filter 300ms;
+}
+
+.orb:hover { transform: scale(1.035); filter: saturate(1.12); }
+.orb:active { transform: scale(0.98); }
+
+.orb-label { font: 800 13px/1 ui-sans-serif, system-ui; letter-spacing: 0.18em; }
+.orb-sub { max-width: 120px; margin-top: 9px; font: 700 8px/1.3 ui-sans-serif; letter-spacing: 0.12em; text-transform: uppercase; }
+
+.orb-glint {
+  position: absolute;
+  width: 32%;
+  height: 12%;
+  top: 17%;
+  left: 25%;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.42);
+  filter: blur(8px);
+  transform: rotate(-24deg);
+}
+
+.orb-shadow {
+  position: absolute;
+  z-index: 0;
+  width: 46%;
+  height: 10%;
+  bottom: 12%;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.75);
+  filter: blur(14px);
+}
+
+.orbit {
+  position: absolute;
+  z-index: 2;
+  width: 80%;
+  height: 36%;
+  border: 1px solid rgba(243, 240, 232, 0.3);
+  border-radius: 50%;
+  transform: rotate(-13deg);
+  transition: 700ms ease;
+}
+
+.orbit-two { width: 89%; height: 43%; transform: rotate(57deg); border-color: rgba(255, 107, 61, 0.35); }
+.orbit span { position: absolute; top: 2px; left: 15%; color: #9b9992; font-size: 7px; letter-spacing: 0.18em; background: var(--ink); padding: 0 5px; }
+.orbit-two span { left: auto; right: 8%; color: var(--orange); }
+.state-assistant_speaking .orbit-one { animation: orbitOne 5s linear infinite; }
+.state-assistant_speaking .orbit-two { animation: orbitTwo 7s linear infinite reverse; }
+.state-user_speaking .orb { box-shadow: inset -22px -28px 52px rgba(34,52,0,.34), 0 0 0 9px rgba(216,255,95,.06), 0 25px 90px rgba(175,231,20,.36); }
+
+.waveform {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: -8px;
+}
+.waveform span { width: 2px; border-radius: 9px; background: #67665f; transition: height 90ms linear, background 250ms; }
+.state-user_speaking .waveform span { background: var(--acid); }
+.state-assistant_speaking .waveform span { background: var(--orange); animation: voiceBar 720ms ease-in-out infinite alternate; }
+.state-assistant_speaking .waveform span:nth-child(3n) { animation-delay: -240ms; }
+.state-assistant_speaking .waveform span:nth-child(4n) { animation-delay: -480ms; }
+
+.controls { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.primary-button, .icon-button, .starter-grid button, .clear-button {
+  border: 0;
+  cursor: pointer;
+  transition: 180ms ease;
+}
+.primary-button {
+  min-width: 156px;
+  padding: 13px 20px;
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.primary-button:hover { background: var(--acid); transform: translateY(-1px); }
+.primary-button.danger { color: var(--paper); background: rgba(255,255,255,.07); outline: 1px solid rgba(243,240,232,.3); }
+.primary-button.danger:hover { background: var(--orange); color: var(--ink); outline-color: var(--orange); }
+.icon-button {
+  width: 84px;
+  color: #96948d;
+  background: transparent;
+  font-size: 8px;
+  line-height: 1.3;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.icon-button:disabled { opacity: .28; cursor: not-allowed; }
+.control-icon { display: grid; place-items: center; width: 29px; height: 29px; margin: 0 auto 6px; border: 1px solid #5e5d58; border-radius: 50%; color: var(--paper); font-size: 10px; }
+.icon-button[aria-pressed="true"] .control-icon { color: var(--orange); border-color: var(--orange); }
+
+.error-banner {
+  max-width: 560px;
+  margin-top: 18px;
+  padding: 10px 14px;
+  color: #ffd9d1;
+  border: 1px solid rgba(255,107,61,.45);
+  background: rgba(255,107,61,.08);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.starter-grid {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 24px;
+}
+.starter-grid > span { color: #5f5e59; font-size: 7px; font-weight: 700; letter-spacing: .18em; }
+.starter-grid button { padding: 7px 9px; color: #8e8c85; background: transparent; border: 1px solid #343431; border-radius: 99px; font: italic 10px Georgia, serif; }
+.starter-grid button:hover { color: var(--paper); border-color: #73716a; }
+
+.transcript-panel {
+  min-height: calc(100vh - 72px);
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid rgba(243,240,232,.14);
+  background: rgba(20,20,18,.72);
+}
+.panel-head { min-height: 104px; display: flex; align-items: center; justify-content: space-between; padding: 24px; border-bottom: 1px solid rgba(243,240,232,.11); }
+.panel-head h2 { margin: 5px 0 0; font: 400 23px Georgia, serif; }
+.clear-button { color: #716f69; background: transparent; font-size: 9px; text-transform: uppercase; letter-spacing: .14em; }
+.clear-button:hover:not(:disabled) { color: var(--paper); }
+.clear-button:disabled { opacity: .3; cursor: default; }
+.transcript { flex: 1; max-height: calc(100vh - 224px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #3c3b37 transparent; }
+.empty-state { min-height: 420px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 34px; text-align: center; color: #77756f; }
+.empty-state .asterisk { color: var(--pink); font-size: 25px; }
+.empty-state p { max-width: 220px; margin: 18px 0 7px; font: italic 17px/1.35 Georgia, serif; color: #a09e96; }
+.empty-state small { max-width: 210px; font-size: 9px; line-height: 1.5; }
+.turn { padding: 22px 24px 25px; border-bottom: 1px solid rgba(243,240,232,.09); }
+.turn-meta { display: flex; justify-content: space-between; margin-bottom: 10px; color: #65645f; font: 700 8px ui-monospace, monospace; letter-spacing: .16em; }
+.turn.assistant .turn-meta span:first-child { color: var(--acid); }
+.turn.user .turn-meta span:first-child { color: var(--orange); }
+.turn p { margin: 0; color: #d6d3ca; font: 15px/1.55 Georgia, serif; }
+.turn.user p { color: #a7a49c; }
+.cursor { display: inline-block; width: 5px; height: 13px; margin-left: 4px; vertical-align: -1px; background: var(--acid); animation: blink .8s steps(1) infinite; }
+.panel-foot { min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-top: 1px solid rgba(243,240,232,.11); color: #565550; font: 7px ui-monospace, monospace; letter-spacing: .13em; }
+.privacy-mark { color: #737e51; }
+
+@keyframes blink { 50% { opacity: .28; } }
+@keyframes voiceBar { to { transform: scaleY(.68); } }
+@keyframes orbitOne { to { transform: rotate(347deg); } }
+@keyframes orbitTwo { to { transform: rotate(417deg); } }
+
+@media (max-width: 900px) {
+  .topbar { padding: 0 18px; grid-template-columns: 1fr auto; }
+  .model-tag { display: none; }
+  .session-pill { justify-self: end; }
+  .workspace { grid-template-columns: 1fr; }
+  .stage { min-height: auto; padding: 35px 18px 30px; }
+  .transcript-panel { min-height: 520px; border-left: 0; border-top: 1px solid rgba(243,240,232,.14); }
+  .transcript { max-height: 520px; }
+  .starter-grid { flex-wrap: wrap; justify-content: center; margin-top: 30px; }
+  .starter-grid > span { width: 100%; text-align: center; }
+}
+
+@media (max-width: 560px) {
+  .brand > span:last-child { display: none; }
+  .topbar { height: 62px; }
+  .workspace { min-height: calc(100vh - 62px); }
+  .title-lockup h1 { font-size: 38px; max-width: 360px; }
+  .title-lockup p { font-size: 16px; }
+  .orb-wrap { width: min(82vw, 330px); }
+  .controls { gap: 3px; }
+  .primary-button { min-width: 142px; }
+  .starter-grid button:last-child { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
+</file>
+
+<file path=".env.example">
+# Cloudflare AI Gateway (required)
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_AI_GATEWAY_ID=api-gateway
+CLOUDFLARE_AI_GATEWAY_TOKEN=
+
+# Optional when the gateway has an OpenAI BYOK key configured.
+# Required when the provider key is not stored in Cloudflare AI Gateway.
+OPENAI_API_KEY=
+
+# Model-agnostic runtime selection. Must support the OpenAI Realtime event protocol.
+REALTIME_MODEL=gpt-realtime-2.1
+REALTIME_VOICE=marin
+TRANSCRIPTION_MODEL=gpt-live-transcribe
+
+PORT=8787
+</file>
+
+<file path=".gitignore">
+node_modules/
+dist/
+.env
+.env.local
+.DS_Store
+*.log
+*.tsbuildinfo
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10100f" />
+    <meta name="description" content="Concierge — a live worldbuilding companion." />
+    <title>Concierge — Live Worldbuilding</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+  "name": "concierge-realtime",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n relay,client -c magenta,cyan \"tsx watch server/index.ts\" \"vite\"",
+    "dev:server": "tsx watch server/index.ts",
+    "dev:client": "vite",
+    "build": "tsc -b && vite build",
+    "start": "NODE_ENV=production tsx server/index.ts",
+    "test": "vitest run",
+    "check": "vitest run && tsc -b && vite build"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.2.1",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@types/ws": "^8.18.1",
+    "@vitejs/plugin-react": "^4.7.0",
+    "concurrently": "^9.2.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.1",
+    "vitest": "^3.2.4"
+  }
+}
+</file>
+
+<file path="README.md">
+# Concierge
+
+Concierge is a realtime, audio-first worldbuilding companion routed through Cloudflare AI Gateway. The browser streams microphone audio to a local Node relay, the relay connects to OpenAI's current Realtime event protocol through the configured gateway, and generated PCM audio streams straight back for low-latency playback.
+
+The model is not hard-coded into the client. `REALTIME_MODEL` selects any model that implements the OpenAI Realtime event contract and is available through the configured gateway.
+
+## Architecture
+
+```text
+Browser                                  Trusted Node relay                         Upstream
+──────────────────────────────           ──────────────────────────────             ─────────────────────
+microphone + permission prompt  ──WS──▶  validates client audio events   ──WSS──▶   Cloudflare AI Gateway
+24 kHz mono PCM capture                  holds gateway/provider secrets              OpenAI Realtime model
+incremental PCM playback       ◀──WS──   configures session + persona     ◀──WSS──   audio + transcript events
+VAD/session/transcript UI                closes upstream with browser
+```
+
+Why a relay instead of direct browser WebRTC? OpenAI recommends WebRTC for direct browser sessions, but Cloudflare AI Gateway's current Realtime integration is a WebSocket endpoint. Keeping that WebSocket on the trusted server also prevents the Cloudflare gateway token and optional OpenAI provider key from reaching browser code.
+
+## Setup
+
+Requirements: Node.js 20 or newer, a Cloudflare account with AI Gateway enabled, and microphone access in a modern browser.
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Create local configuration:
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. Set these values in `.env.local`:
+
+   - `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account that owns the gateway.
+   - `CLOUDFLARE_AI_GATEWAY_ID`: defaults to the local convention, `api-gateway`.
+   - `CLOUDFLARE_AI_GATEWAY_TOKEN`: a token with AI Gateway Run permission for an authenticated gateway.
+   - `REALTIME_MODEL`: defaults to the current voice model used during development, `gpt-realtime-2.1`; change it without rebuilding.
+   - `OPENAI_API_KEY`: omit this when the OpenAI provider key is stored in Cloudflare AI Gateway with BYOK. Otherwise set it only in `.env.local`; the relay forwards it upstream and never sends it to the browser.
+
+   Never prefix a variable with `VITE_`: Vite exposes those values to browser JavaScript.
+
+4. Start both the relay and frontend:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:5173](http://localhost:5173), select **Begin session**, and allow microphone access.
+
+The relay health endpoint is [http://localhost:8787/api/health](http://localhost:8787/api/health). It reports the selected model and whether required Cloudflare variables exist, but never returns credentials.
+
+## Developer notes
+
+### Latency
+
+- The AudioWorklet resamples browser input to mono 24 kHz PCM16 and emits roughly 20 ms chunks. Avoid increasing chunk size unless gateway overhead becomes a measured problem; larger chunks delay VAD and barge-in.
+- Audio output is scheduled incrementally with a small 25 ms lead to reduce gaps without building a large playback buffer.
+- `semantic_vad` with automatic eagerness allows natural pauses. For rapid-fire interactions, try `eagerness: "high"`; for reflective sessions use `"low"`.
+- The Cloudflare relay adds a network hop compared with direct OpenAI WebRTC. Measure microphone-to-first-audio latency in the deployment region that will actually serve users.
+
+### Session lifecycle
+
+- Each browser WebSocket owns exactly one upstream Realtime session. Closing the browser session closes the upstream socket.
+- The UI waits for `session.updated` before declaring the line ready.
+- Realtime sessions are stateful and currently have a maximum duration of 60 minutes. Long-running products should warn before expiry and explicitly start a fresh session with a compact handoff summary if continuity matters.
+- The voice cannot be changed after the model has emitted audio. Start a new session when switching voices.
+- Browser reconnection uses three exponential-backoff attempts. A recovered connection is a new model session, so prior spoken context is not silently assumed to survive.
+
+### Permissions and security
+
+- Microphone permission is requested only after the user presses **Begin session**.
+- Standard provider credentials and the Cloudflare gateway token exist only in the relay environment.
+- The relay sets `cf-aig-collect-log-payload: false`, preserving gateway metadata while keeping raw conversation payloads out of AI Gateway logs. Remove or change that header only after making an explicit retention decision.
+- Production should authenticate `/api/realtime`, authorize gateway use per user, rate-limit upgrades, validate the request origin, and attach a stable privacy-preserving OpenAI safety identifier where supported by the gateway.
+- Transcripts live only in React memory in this prototype and disappear on refresh. If persistence is added, make retention and deletion controls explicit.
+
+### Error recovery
+
+- Permission denial remains a browser-level error; the UI tells the user to change browser settings and retry.
+- Unexpected WebSocket closure triggers bounded reconnects. After three failures the app stops retrying to avoid a reconnect storm.
+- Upstream API errors are displayed without leaking headers or credentials. Detailed gateway failures remain in server logs.
+- When user speech begins, queued assistant audio is stopped locally while server-side interruption cancels generation through VAD.
+
+## Validation checklist
+
+### Audio and permission
+
+- [ ] First click prompts for microphone access; no prompt appears at page load.
+- [ ] Denying permission produces a useful retry state without a page crash.
+- [ ] Allowing permission moves through Connecting to Listening.
+- [ ] Speaking changes the state to You have the floor and animates the input meter.
+- [ ] Assistant audio begins incrementally and is clear, at the expected pitch and speed.
+- [ ] Pausing the mic stops new input chunks; muting voice stops queued and future playback.
+- [ ] Headphones and laptop speakers both avoid an obvious echo loop.
+
+### Connection recovery
+
+- [ ] Stop the relay during a session and confirm the UI enters Restoring the line.
+- [ ] Restart within the retry window and confirm a new session reaches Listening.
+- [ ] Leave the relay down and confirm retries stop after three attempts.
+- [ ] End session and confirm the microphone browser indicator turns off immediately.
+- [ ] Verify an invalid gateway token produces a safe user error and a useful server log.
+
+### Conversation quality
+
+- [ ] Ask for a setting concept; Concierge gives a strong direction before alternatives.
+- [ ] Interrupt a long response and confirm playback stops quickly and the model adapts.
+- [ ] Use invented names and confirm the live transcript remains usable.
+- [ ] Ask Concierge to stress-test a world and confirm it identifies concrete tensions and failure modes.
+- [ ] Hold a natural pause mid-sentence and verify turn detection does not consistently cut in too early.
+- [ ] Run a 20-minute conversation and monitor drift, repetition, latency, and transcript ordering.
+
+## Verification commands
+
+```bash
+npm test
+npm run build
+```
+
+## Current API references
+
+- [OpenAI Realtime with WebSocket](https://developers.openai.com/api/docs/guides/realtime-websocket)
+- [OpenAI Realtime conversations](https://developers.openai.com/api/docs/guides/realtime-conversations)
+- [OpenAI voice activity detection](https://developers.openai.com/api/docs/guides/realtime-vad)
+- [OpenAI model catalog](https://developers.openai.com/api/docs/models)
+- [Cloudflare AI Gateway Realtime WebSockets](https://developers.cloudflare.com/ai-gateway/usage/websockets-api/realtime-api/)
+</file>
+
+<file path="tsconfig.app.json">
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+</file>
+
+<file path="tsconfig.node.json">
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["server", "vite.config.ts"]
+}
+</file>
+
+<file path="vite.config.ts">
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8787",
+        changeOrigin: true,
+        ws: true,
+      },
+    },
+  },
+});
+</file>
+
+</files>

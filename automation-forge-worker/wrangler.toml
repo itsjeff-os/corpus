@@ -1,0 +1,22 @@
+name = "automation-forge-worker"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+
+[vars]
+OPENAI_MODEL = "gpt-5.1"
+DEFAULT_TARGET = "node_red"
+NODE_RED_DEPLOYMENT_TYPE = "flows"
+
+[[kv_namespaces]]
+binding = "AUTOMATIONS"
+id = "REPLACE_WITH_PROD_KV_NAMESPACE_ID"
+preview_id = "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID"
+
+# Required secrets:
+# wrangler secret put ADMIN_TOKEN
+# wrangler secret put OPENAI_API_KEY
+# wrangler secret put NODE_RED_BASE_URL
+# wrangler secret put NODE_RED_TOKEN
+# Optional if using Home Assistant:
+# wrangler secret put HOME_ASSISTANT_BASE_URL
+# wrangler secret put HOME_ASSISTANT_TOKEN

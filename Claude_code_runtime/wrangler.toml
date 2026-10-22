@@ -1,0 +1,18 @@
+name = "redteam-eval-suite"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+JUDGE_MODEL = "claude-sonnet-4-6"
+TARGET_MODEL = "claude-sonnet-4-6"
+MAX_TOKENS = "1000"
+RATE_LIMIT_RPM = "60"
+
+[[kv_namespaces]]
+binding = "RESULTS_KV"
+id = "REPLACE_WITH_YOUR_KV_ID"
+
+# Secrets — configure via: wrangler secret put <NAME>
+# ANTHROPIC_API_KEY     — required
+# JUDGE_API_KEY         — required (use a different key or model for independence)
+# AUTH_TOKEN            — required (Bearer token for API access)

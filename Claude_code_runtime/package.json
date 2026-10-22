@@ -1,0 +1,14 @@
+{
+  "name": "redteam-eval-suite",
+  "version": "1.0.0",
+  "description": "Adversarial test suite and red team evaluation framework for LLM constraint compliance",
+  "main": "src/index.js",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "test": "node scripts/run-tests.js"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "artifact": "SHIP_DigitalTwin_v1.2_seed",
+  "grounded_in": [
+    "SHIP_Anchor_v1.1 (digital_twin_model spec)",
+    "ship_devices_inventor.md (real device inventory)",
+    "SHIP_Lighting_Naming_Schema_v1.json (approved naming convention)",
+    "live home-graph-api / Neo4j graph on mini-PC (per facts map: status live_with_endpoints)"
+  ],
+  "status": "draft_seed_data — not yet imported",
+  "note": "This is the data, not a new architecture. It's shaped to drop into the graph API's existing POST /nodes and POST /edges (or the room/device import endpoints) once you confirm it reads true. Lighting entity_ids follow the approved naming schema exactly. Non-lighting domains (sensor/cover/climate/media_player) don't have an approved schema yet, so I've extended the same code-first pattern for consistency — flagging that as new ground, not settled convention.",
+
+  "nodes": {
+    "rooms": [
+      { "id": "room.core", "kind": "Room", "code": "core", "name": "Open Plan", "notes": "split into subzones" },
+      { "id": "room.alpha", "kind": "Room", "code": "alpha", "name": "Bedroom 1 (Main)" },
+      { "id": "room.beta", "kind": "Room", "code": "beta", "name": "Bedroom 2 (Spare)" },
+      { "id": "room.pass", "kind": "Room", "code": "pass", "name": "Hallway" },
+      { "id": "room.throne", "kind": "Room", "code": "throne", "name": "Main Bathroom", "notes": "not yet detailed in device inventory" },
+      { "id": "room.splash", "kind": "Room", "code": "splash", "name": "Guest Bathroom", "notes": "not yet detailed in device inventory" },
+      { "id": "room.chaos", "kind": "Room", "code": "chaos", "name": "Laundry / Utility / Storage", "notes": "hosts infra hubs" }
+    ],
+    "zones": [
+      { "id": "zone.core_living", "kind": "Zone", "parent_room": "room.core", "code": "living", "name": "Living Area" },
+      { "id": "zone.core_dining", "kind": "Zone", "parent_room": "room.core", "code": "dining", "name": "Dining Area" },
+      { "id": "zone.core_chef", "kind": "Zone", "parent_room": "room.core", "code": "chef", "name": "Kitchen" }
+    ],
+    "hubs": [
+      { "id": "hub.aqara_m3", "kind": "Hub", "name": "Aqara M3 Hub", "role": "Zigbee/Matter bridge", "location": "room.chaos", "connectivity": "wired_ethernet", "status": "production" },
+      { "id": "hub.hue_bridge_pro", "kind": "Hub", "name": "Philips Hue Bridge Pro", "role": "lighting_control_all_rooms", "location": "room.chaos", "connectivity": "wired_ethernet", "status": "production" },
+      { "id": "hub.switchbot_hub3", "kind": "Hub", "name": "Switchbot Hub 3", "role": "switchbot_bridge_blinds", "location": "room.chaos", "connectivity": "wifi", "status": "production" },
+      { "id": "hub.apple_tv_core", "kind": "Hub", "name": "Apple TV (Open Plan)", "role": "primary_homekit_hub", "location": "room.core", "connectivity": "wired_ethernet", "status": "production" },
+      { "id": "hub.apple_tv_bedroom", "kind": "Hub", "name": "Apple TV (Bedroom)", "role": "secondary_homekit_hub", "location": "room.alpha", "connectivity": "wireless", "status": "production" },
+      { "id": "hub.homepod_core", "kind": "Hub", "name": "HomePod (Open Plan)", "role": "homekit_hub_media", "location": "room.core", "status": "production" },
+      { "id": "hub.google_nest_mini", "kind": "Hub", "name": "Google Nest Mini", "role": "voice_assistant", "location": "room.core", "connectivity": "wifi", "status": "production" }
+    ],
+    "devices": [
+      { "id": "device.light_core_living_ceiling", "kind": "Device", "type": "light", "name": "Living Area Ceiling", "room": "zone.core_living", "hub": "hub.hue_bridge_pro" },
+      { "id": "device.light_core_all_gradient", "kind": "Device", "type": "light", "name": "Open Plan Gradient Lightstrip", "room": "room.core", "hub": "hub.hue_bridge_pro" },
+      { "id": "device.sensor_fp2_core", "kind": "Device", "type": "presence_sensor", "model": "Aqara FP2", "name": "Open Plan Presence", "room": "room.core", "hub": "hub.aqara_m3", "technology": "mmwave_zone_detection" },
+      { "id": "device.curtain_core_e1_pair", "kind": "Device", "type": "curtain_controller", "model": "Aqara Curtain E1", "quantity": 2, "name": "Open Plan Curtains", "room": "room.core", "hub": "hub.aqara_m3", "notes": "paired for synchronized operation" },
+      { "id": "device.ac_core_dreo_or_meaco", "kind": "Device", "type": "portable_ac", "name": "Open Plan AC (Dreo 14k BTU / Meaco 12k BTU, mobile)", "room": "room.core" },
+      { "id": "device.tv_core_samsung_serif", "kind": "Device", "type": "tv", "model": "Samsung Serif 50\" 4K QLED", "room": "room.core" },
+
+      { "id": "device.light_alpha_ceiling", "kind": "Device", "type": "light", "name": "Bedroom 1 Ceiling (x6)", "room": "room.alpha", "hub": "hub.hue_bridge_pro" },
+      { "id": "device.sensor_fp2_alpha", "kind": "Device", "type": "presence_sensor", "model": "Aqara FP2", "name": "Bedroom 1 Presence", "room": "room.alpha", "hub": "hub.aqara_m3" },
+      { "id": "device.door_sensor_alpha", "kind": "Device", "type": "door_sensor", "model": "Aqara", "name": "Bedroom 1 Door", "room": "room.alpha", "hub": "hub.aqara_m3" },
+      { "id": "device.blinds_alpha", "kind": "Device", "type": "roller_blind", "model": "Switchbot Roller Blind", "name": "Bedroom 1 Blinds", "room": "room.alpha", "hub": "hub.switchbot_hub3" },
+      { "id": "device.sleepmat_alpha", "kind": "Device", "type": "health_sensor", "model": "Withings Sleep Mat", "name": "Bedroom 1 Sleep Mat", "room": "room.alpha", "notes": "under mattress; potential HA webhook" },
+      { "id": "device.tv_alpha_samsung_uhd", "kind": "Device", "type": "tv", "model": "Samsung UHD 50\" 4K", "room": "room.alpha" },
+
+      { "id": "device.light_beta_ceiling", "kind": "Device", "type": "light", "name": "Bedroom 2 Ceiling", "room": "room.beta", "hub": "hub.hue_bridge_pro" },
+      { "id": "device.sensor_fp1e_beta", "kind": "Device", "type": "presence_sensor", "model": "Aqara FP1E", "name": "Bedroom 2 Presence (stationary)", "room": "room.beta", "hub": "hub.aqara_m3" },
+      { "id": "device.sensor_fp2_beta", "kind": "Device", "type": "presence_sensor", "model": "Aqara FP2", "name": "Bedroom 2 Presence (zone)", "room": "room.beta", "hub": "hub.aqara_m3" },
+      { "id": "device.motion_beta", "kind": "Device", "type": "motion_sensor", "model": "Hue Motion", "name": "Bedroom 2 Motion", "room": "room.beta", "hub": "hub.hue_bridge_pro" },
+      { "id": "device.door_sensor_beta", "kind": "Device", "type": "door_sensor", "model": "Aqara", "name": "Bedroom 2 Door", "room": "room.beta", "hub": "hub.aqara_m3" },
+      { "id": "device.blinds_beta", "kind": "Device", "type": "roller_blind", "model": "Switchbot Roller Blind", "name": "Bedroom 2 Blinds", "room": "room.beta", "hub": "hub.switchbot_hub3" },
+
+      { "id": "device.light_pass_ceiling", "kind": "Device", "type": "light", "name": "Hallway Ceiling", "room": "room.pass", "hub": "hub.hue_bridge_pro" },
+      { "id": "device.motion_pass", "kind": "Device", "type": "motion_sensor", "model": "Hue Motion", "name": "Hallway Motion", "room": "room.pass", "hub": "hub.hue_bridge_pro" },
+      { "id": "device.sensor_pass_pending", "kind": "Device", "type": "presence_sensor", "model": "Aqara FP2/FP1E", "name": "Hallway Presence", "room": "room.pass", "hub": "hub.aqara_m3", "status": "pending_final_config" },
+
+      { "id": "device.light_chaos_ceiling", "kind": "Device", "type": "light", "name": "Laundry Ceiling", "room": "room.chaos", "hub": "hub.hue_bridge_pro" },
+      { "id": "device.door_sensor_chaos", "kind": "Device", "type": "door_sensor", "model": "Aqara", "name": "Laundry Door", "room": "room.chaos", "hub": "hub.aqara_m3" },
+      { "id": "device.robovac", "kind": "Device", "type": "vacuum", "model": "Eufy S1 Omni Pro", "name": "RoboVac & Mop", "room": "room.chaos", "coverage": "whole_flat" }
+    ],
+    "entities": [
+      { "id": "entity.light_core_living_ceiling", "kind": "Entity", "entity_id": "light.core_living_ceiling", "friendly_name": "Living Area Ceiling", "exposed_by": "device.light_core_living_ceiling" },
+      { "id": "entity.light_core_living_all", "kind": "Entity", "entity_id": "light.core_living_all", "friendly_name": "Living Area Lights", "category": "group" },
+      { "id": "entity.light_core_dining_all", "kind": "Entity", "entity_id": "light.core_dining_all", "friendly_name": "Dining Area Lights", "category": "group" },
+      { "id": "entity.light_core_chef_all", "kind": "Entity", "entity_id": "light.core_chef_all", "friendly_name": "Kitchen Area Lights", "category": "group" },
+      { "id": "entity.light_alpha_all", "kind": "Entity", "entity_id": "light.alpha_all", "friendly_name": "Bedroom 1 Lights", "category": "group", "exposed_by": "device.light_alpha_ceiling" },
+      { "id": "entity.light_beta_all", "kind": "Entity", "entity_id": "light.beta_all", "friendly_name": "Spare Bedroom Lights", "category": "group", "exposed_by": "device.light_beta_ceiling" },
+      { "id": "entity.light_pass_all", "kind": "Entity", "entity_id": "light.pass_all", "friendly_name": "Hallway Lights", "category": "group", "exposed_by": "device.light_pass_ceiling" },
+      { "id": "entity.light_throne_ceiling", "kind": "Entity", "entity_id": "light.throne_ceiling", "friendly_name": "Main Bathroom Ceiling", "category": "group", "notes": "device not yet catalogued" },
+      { "id": "entity.light_chaos_all", "kind": "Entity", "entity_id": "light.chaos_all", "friendly_name": "Laundry Lights", "category": "group", "exposed_by": "device.light_chaos_ceiling" }
+    ]
+  },
+
+  "edges": [
+    { "type": "LOCATED_IN", "from": "zone.core_living", "to": "room.core" },
+    { "type": "LOCATED_IN", "from": "zone.core_dining", "to": "room.core" },
+    { "type": "LOCATED_IN", "from": "zone.core_chef", "to": "room.core" },
+
+    { "type": "CONNECTED_TO", "from": "device.light_core_living_ceiling", "to": "hub.hue_bridge_pro" },
+    { "type": "CONNECTED_TO", "from": "device.sensor_fp2_core", "to": "hub.aqara_m3" },
+    { "type": "CONNECTED_TO", "from": "device.curtain_core_e1_pair", "to": "hub.aqara_m3" },
+    { "type": "CONNECTED_TO", "from": "device.light_alpha_ceiling", "to": "hub.hue_bridge_pro" },
+    { "type": "CONNECTED_TO", "from": "device.blinds_alpha", "to": "hub.switchbot_hub3" },
+    { "type": "CONNECTED_TO", "from": "device.light_beta_ceiling", "to": "hub.hue_bridge_pro" },
+    { "type": "CONNECTED_TO", "from": "device.motion_beta", "to": "hub.hue_bridge_pro" },
+    { "type": "CONNECTED_TO", "from": "device.blinds_beta", "to": "hub.switchbot_hub3" },
+    { "type": "CONNECTED_TO", "from": "device.light_pass_ceiling", "to": "hub.hue_bridge_pro" },
+    { "type": "CONNECTED_TO", "from": "device.motion_pass", "to": "hub.hue_bridge_pro" },
+    { "type": "CONNECTED_TO", "from": "device.light_chaos_ceiling", "to": "hub.hue_bridge_pro" },
+
+    { "type": "EXPOSES", "from": "device.light_core_living_ceiling", "to": "entity.light_core_living_ceiling" },
+    { "type": "EXPOSES", "from": "device.light_alpha_ceiling", "to": "entity.light_alpha_all" },
+    { "type": "EXPOSES", "from": "device.light_beta_ceiling", "to": "entity.light_beta_all" },
+    { "type": "EXPOSES", "from": "device.light_pass_ceiling", "to": "entity.light_pass_all" },
+    { "type": "EXPOSES", "from": "device.light_chaos_ceiling", "to": "entity.light_chaos_all" },
+
+    { "type": "OBSERVES", "from": "device.sensor_fp2_core", "to": "room.core" },
+    { "type": "OBSERVES", "from": "device.sensor_fp2_alpha", "to": "room.alpha" },
+    { "type": "OBSERVES", "from": "device.sensor_fp1e_beta", "to": "room.beta" },
+    { "type": "OBSERVES", "from": "device.sensor_fp2_beta", "to": "room.beta" },
+    { "type": "OBSERVES", "from": "device.motion_pass", "to": "room.pass" }
+  ],
+
+  "known_gaps": [
+    "throne (Main Bathroom) and splash (Guest Bathroom) have room codes and naming-schema examples, but no catalogued devices yet — inventory doc doesn't cover them",
+    "media/audio devices (HomePods, soundbar, Apple TVs) and climate devices (humidifiers, purifiers) are in the inventory but not yet fully graphed as Device nodes here — lighting + presence + core structure came first since that's what the naming schema actually covers",
+    "no entity naming schema exists yet for sensor/cover/climate/media_player domains — the entity_id pattern above is proposed, not approved",
+    "automations, scenes, and capability nodes aren't populated — this seed is structure + inventory only, not behavior yet"
+  ],
+
+  "next_seed_pass_candidates": [
+    "finish media + climate device nodes",
+    "propose and confirm naming pattern for non-light domains before generating their entity_ids",
+    "add Capability nodes (dimmable, color, presence_zone, open_close) and HAS_CAPABILITY edges",
+    "add Automation/Scene nodes once first real automations exist"
+  ]
+}
