@@ -1,0 +1,933 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+actions.ts
+index.ts
+package.json
+read.ts
+README.md
+unifi.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="actions.ts">
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+import { UniFiClient } from "../services/unifi.js";
+
+function ok(data: unknown) {
+  return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+}
+
+export function registerActionTools(server: McpServer, client: UniFiClient) {
+
+  // ── DEVICE ACTIONS ──────────────────────────────────────────────────────────
+
+  server.registerTool("unifi_restart_device", {
+    title: "Restart Device",
+    description: "Restart an adopted UniFi device (AP, switch, gateway). Use unifi_list_devices to get the device UUID first.",
+    inputSchema: { deviceId: z.string().describe("Device UUID") },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ deviceId }) =>
+    ok(await client.site(`/devices/${deviceId}/actions`, "POST", { action: "RESTART" })));
+
+  server.registerTool("unifi_power_cycle_port", {
+    title: "Power Cycle PoE Port",
+    description: "Power-cycle a PoE port on a UniFi switch. Useful for resetting hung devices.",
+    inputSchema: {
+      deviceId: z.string().describe("Switch device UUID"),
+      portIdx:  z.number().int().min(1).describe("Port index (1-based)"),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ deviceId, portIdx }) =>
+    ok(await client.site(`/devices/${deviceId}/interfaces/ports/${portIdx}/actions`, "POST", { action: "POWER_CYCLE" })));
+
+  server.registerTool("unifi_adopt_devices", {
+    title: "Adopt Devices",
+    description: "Adopt one or more pending devices into the site. Get device UUIDs from unifi_list_pending_devices.",
+    inputSchema: {
+      deviceIds: z.array(z.string()).min(1).describe("Array of device UUIDs to adopt"),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ deviceIds }) =>
+    ok(await client.site("/devices", "POST", { deviceIds })));
+
+  // ── CLIENT ACTIONS ──────────────────────────────────────────────────────────
+
+  server.registerTool("unifi_block_client", {
+    title: "Block Client",
+    description: "Block a client from the network by MAC address (legacy API — works for any client type).",
+    inputSchema: { mac: z.string().describe("Client MAC address e.g. aa:bb:cc:dd:ee:ff") },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  }, async ({ mac }) =>
+    ok(await client.legacyCmd("stamgr", "block-sta", { mac })));
+
+  server.registerTool("unifi_unblock_client", {
+    title: "Unblock Client",
+    description: "Unblock a previously blocked client by MAC address (legacy API).",
+    inputSchema: { mac: z.string().describe("Client MAC address") },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ mac }) =>
+    ok(await client.legacyCmd("stamgr", "unblock-sta", { mac })));
+
+  server.registerTool("unifi_kick_client", {
+    title: "Kick Client",
+    description: "Forcibly disconnect a client from the network (they can reconnect). Useful for forcing a re-auth or channel switch.",
+    inputSchema: { mac: z.string().describe("Client MAC address") },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ mac }) =>
+    ok(await client.legacyCmd("stamgr", "kick-sta", { mac })));
+
+  server.registerTool("unifi_reconnect_client", {
+    title: "Reconnect Client",
+    description: "Force a client to reconnect (kick + allow immediate reconnect). Useful for applying new VLAN assignments.",
+    inputSchema: { mac: z.string().describe("Client MAC address") },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ mac }) =>
+    ok(await client.legacyCmd("stamgr", "kick-sta", { mac })));
+
+  server.registerTool("unifi_authorize_guest", {
+    title: "Authorize Guest Client",
+    description: "Authorize a guest client with optional time, data, and rate limits. Cancels existing authorization.",
+    inputSchema: {
+      clientId:             z.string().describe("Client UUID from unifi_list_clients"),
+      timeLimitMinutes:     z.number().int().min(1).max(1000000).optional().describe("Session time limit"),
+      rxRateLimitKbps:      z.number().int().min(2).max(100000).optional().describe("Download rate limit kbps"),
+      txRateLimitKbps:      z.number().int().min(2).max(100000).optional().describe("Upload rate limit kbps"),
+      dataUsageLimitMBytes: z.number().int().min(1).max(1048576).optional().describe("Data cap in MB"),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ clientId, ...limits }) =>
+    ok(await client.site(`/clients/${clientId}/actions`, "POST", {
+      action: "AUTHORIZE_GUEST_ACCESS",
+      ...limits,
+    })));
+
+  server.registerTool("unifi_unauthorize_guest", {
+    title: "Unauthorize Guest Client",
+    description: "Revoke guest network access for a client.",
+    inputSchema: { clientId: z.string().describe("Client UUID") },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  }, async ({ clientId }) =>
+    ok(await client.site(`/clients/${clientId}/actions`, "POST", { action: "UNAUTHORIZE_GUEST_ACCESS" })));
+
+  server.registerTool("unifi_set_client_name", {
+    title: "Set Client Name / Alias",
+    description: "Set a friendly name/alias for a client device (legacy API).",
+    inputSchema: {
+      mac:  z.string().describe("Client MAC address"),
+      name: z.string().min(1).describe("Friendly name/alias"),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ mac, name }) =>
+    ok(await client.legacy(`/upd/user/${mac}`, "PUT", { name })));
+
+  // ── WIFI ────────────────────────────────────────────────────────────────────
+
+  server.registerTool("unifi_create_wifi", {
+    title: "Create WiFi Broadcast",
+    description: `Create a new WiFi SSID. Get networkId from unifi_list_networks first.
+Security types: OPEN (no password) or WPA2 (requires password).
+Type: STANDARD for regular WiFi, IOT_OPTIMIZED for smart home devices.`,
+    inputSchema: {
+      name:                   z.string().min(1).max(32).describe("SSID name"),
+      networkId:              z.string().describe("Network UUID to associate this SSID with"),
+      type:                   z.enum(["STANDARD", "IOT_OPTIMIZED"]).default("STANDARD"),
+      enabled:                z.boolean().default(true),
+      securityType:           z.enum(["OPEN", "WPA2"]).default("WPA2"),
+      password:               z.string().min(8).optional().describe("Required for WPA2"),
+      clientIsolationEnabled: z.boolean().default(false).describe("Prevent clients from talking to each other"),
+      hideName:               z.boolean().default(false).describe("Hide SSID from broadcasts"),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ name, networkId, type, enabled, securityType, password, clientIsolationEnabled, hideName }) =>
+    ok(await client.site("/wifi/broadcasts", "POST", {
+      name, type, enabled, hideName, clientIsolationEnabled,
+      channel2gLockedTo6: false,
+      dtimPeriod2gLockedTo3: false,
+      multicastToUnicastConversionEnabled: false,
+      uapsdEnabled: false,
+      network: { id: networkId },
+      securityConfiguration: securityType === "OPEN"
+        ? { type: "OPEN" }
+        : { type: "WPA2", password },
+    })));
+
+  server.registerTool("unifi_delete_wifi", {
+    title: "Delete WiFi Broadcast",
+    description: "Delete a WiFi SSID. Get wifiBroadcastId from unifi_list_wifi_broadcasts.",
+    inputSchema: { wifiBroadcastId: z.string().describe("WiFi broadcast UUID") },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  }, async ({ wifiBroadcastId }) =>
+    ok(await client.site(`/wifi/broadcasts/${wifiBroadcastId}`, "DELETE")));
+
+  server.registerTool("unifi_toggle_wifi", {
+    title: "Enable/Disable WiFi Broadcast",
+    description: "Enable or disable a WiFi SSID without deleting it.",
+    inputSchema: {
+      wifiBroadcastId: z.string().describe("WiFi broadcast UUID"),
+      enabled:         z.boolean().describe("true to enable, false to disable"),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ wifiBroadcastId, enabled }) =>
+    ok(await client.site(`/wifi/broadcasts/${wifiBroadcastId}`, "PUT", { enabled })));
+
+  // ── FIREWALL ────────────────────────────────────────────────────────────────
+
+  server.registerTool("unifi_create_firewall_policy", {
+    title: "Create Firewall Policy",
+    description: `Create a firewall policy between two zones.
+ALWAYS call unifi_list_firewall_zones first to get zone UUIDs.
+Action types: ALLOW (optionally with return traffic), BLOCK, REJECT.
+Supports scheduling: EVERY_DAY or EVERY_WEEK with time windows in HH:MM 24h format.`,
+    inputSchema: {
+      name:               z.string().min(1).describe("Policy name"),
+      description:        z.string().optional(),
+      enabled:            z.boolean().default(true),
+      actionType:         z.enum(["ALLOW", "BLOCK", "REJECT"]),
+      allowReturnTraffic: z.boolean().optional().describe("ALLOW only — auto-create reverse rule"),
+      sourceZoneId:       z.string().describe("Source firewall zone UUID"),
+      destinationZoneId:  z.string().describe("Destination firewall zone UUID"),
+      ipVersion:          z.enum(["IPV4", "IPV6", "IPV4_AND_IPV6"]).default("IPV4"),
+      scheduleMode:       z.enum(["EVERY_DAY", "EVERY_WEEK"]).optional().describe("Omit for always-active"),
+      scheduleDays:       z.array(z.enum(["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"])).optional(),
+      scheduleStartTime:  z.string().regex(/^\d{2}:\d{2}$/).optional().describe("HH:MM 24h"),
+      scheduleStopTime:   z.string().regex(/^\d{2}:\d{2}$/).optional().describe("HH:MM 24h"),
+      loggingEnabled:     z.boolean().default(false),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ name, description, enabled, actionType, allowReturnTraffic, sourceZoneId, destinationZoneId, ipVersion, scheduleMode, scheduleDays, scheduleStartTime, scheduleStopTime, loggingEnabled }) => {
+    const action = actionType === "ALLOW"
+      ? { type: "ALLOW", allowReturnTraffic: allowReturnTraffic ?? true }
+      : { type: actionType };
+
+    const timeFilter = scheduleStartTime && scheduleStopTime
+      ? { startTime: scheduleStartTime, stopTime: scheduleStopTime }
+      : undefined;
+
+    const schedule = scheduleMode === "EVERY_DAY"
+      ? { mode: "EVERY_DAY", ...(timeFilter && { timeFilter }) }
+      : scheduleMode === "EVERY_WEEK"
+      ? { mode: "EVERY_WEEK", repeatOnDays: scheduleDays, ...(timeFilter && { timeFilter }) }
+      : undefined;
+
+    return ok(await client.site("/firewall/policies", "POST", {
+      name, description, enabled, loggingEnabled, action,
+      source:          { zoneId: sourceZoneId },
+      destination:     { zoneId: destinationZoneId },
+      ipProtocolScope: { ipVersion },
+      ...(schedule && { schedule }),
+    }));
+  });
+
+  server.registerTool("unifi_delete_firewall_policy", {
+    title: "Delete Firewall Policy",
+    description: "Delete a firewall policy. Get firewallPolicyId from unifi_list_firewall_policies.",
+    inputSchema: { firewallPolicyId: z.string().describe("Firewall policy UUID") },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  }, async ({ firewallPolicyId }) =>
+    ok(await client.site(`/firewall/policies/${firewallPolicyId}`, "DELETE")));
+
+  server.registerTool("unifi_toggle_firewall_policy", {
+    title: "Enable/Disable Firewall Policy",
+    description: "Enable or disable a firewall policy without deleting it.",
+    inputSchema: {
+      firewallPolicyId: z.string().describe("Firewall policy UUID"),
+      enabled:          z.boolean(),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ firewallPolicyId, enabled }) =>
+    ok(await client.site(`/firewall/policies/${firewallPolicyId}`, "PATCH", { enabled })));
+
+  server.registerTool("unifi_create_firewall_zone", {
+    title: "Create Firewall Zone",
+    description: "Create a custom firewall zone. Default zones (LAN, WAN, etc.) are created automatically.",
+    inputSchema: { name: z.string().min(1).describe("Zone name") },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ name }) =>
+    ok(await client.site("/firewall/zones", "POST", { name })));
+
+  // ── ACL ─────────────────────────────────────────────────────────────────────
+
+  server.registerTool("unifi_create_acl_rule", {
+    title: "Create ACL Rule",
+    description: "Create an ACL rule for switch-level traffic control (layer 2/3). Type IPV4 or MAC.",
+    inputSchema: {
+      name:        z.string().min(1),
+      description: z.string().optional(),
+      action:      z.enum(["ALLOW", "BLOCK"]),
+      type:        z.enum(["IPV4", "MAC"]),
+      enabled:     z.boolean().default(true),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async (params) =>
+    ok(await client.site("/acl-rules", "POST", params)));
+
+  server.registerTool("unifi_delete_acl_rule", {
+    title: "Delete ACL Rule",
+    description: "Delete an ACL rule. Get aclRuleId from unifi_list_acl_rules.",
+    inputSchema: { aclRuleId: z.string() },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  }, async ({ aclRuleId }) =>
+    ok(await client.site(`/acl-rules/${aclRuleId}`, "DELETE")));
+
+  // ── DNS ─────────────────────────────────────────────────────────────────────
+
+  server.registerTool("unifi_create_dns_policy", {
+    title: "Create DNS Policy",
+    description: "Create a local DNS record or domain forwarding policy.",
+    inputSchema: {
+      type:    z.enum(["A_RECORD","AAAA_RECORD","CNAME_RECORD","MX_RECORD","SRV_RECORD","TXT_RECORD","FORWARD_DOMAIN"]),
+      domain:  z.string().min(1).describe("Domain name e.g. mydevice.local"),
+      enabled: z.boolean().default(true),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async (params) =>
+    ok(await client.site("/dns/policies", "POST", params)));
+
+  server.registerTool("unifi_delete_dns_policy", {
+    title: "Delete DNS Policy",
+    description: "Delete a DNS policy. Get dnsPolicyId from unifi_list_dns_policies.",
+    inputSchema: { dnsPolicyId: z.string() },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  }, async ({ dnsPolicyId }) =>
+    ok(await client.site(`/dns/policies/${dnsPolicyId}`, "DELETE")));
+
+  // ── TRAFFIC MATCHING ────────────────────────────────────────────────────────
+
+  server.registerTool("unifi_create_traffic_matching_list", {
+    title: "Create Traffic Matching List",
+    description: "Create a named list of IPs or ports for use as firewall policy targets.",
+    inputSchema: {
+      name: z.string().min(1),
+      type: z.enum(["IPV4_ADDRESSES", "IPV6_ADDRESSES", "PORTS"]),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async (params) =>
+    ok(await client.site("/traffic-matching-lists", "POST", params)));
+
+  server.registerTool("unifi_delete_traffic_matching_list", {
+    title: "Delete Traffic Matching List",
+    description: "Delete a traffic matching list.",
+    inputSchema: { trafficMatchingListId: z.string() },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  }, async ({ trafficMatchingListId }) =>
+    ok(await client.site(`/traffic-matching-lists/${trafficMatchingListId}`, "DELETE")));
+
+  // ── LEGACY EXTRAS ───────────────────────────────────────────────────────────
+
+  server.registerTool("unifi_forget_client", {
+    title: "Forget Client",
+    description: "Remove a client from history entirely (legacy API). The client can rejoin as new.",
+    inputSchema: {
+      macs: z.array(z.string()).min(1).describe("Array of MAC addresses to forget"),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  }, async ({ macs }) =>
+    ok(await client.legacyCmd("stamgr", "forget-sta", { macs })));
+
+  server.registerTool("unifi_upgrade_device", {
+    title: "Upgrade Device Firmware",
+    description: "Trigger a firmware upgrade for a device (legacy API). Device will reboot after upgrade.",
+    inputSchema: { mac: z.string().describe("Device MAC address") },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  }, async ({ mac }) =>
+    ok(await client.legacyCmd("devmgr", "upgrade", { mac })));
+
+  server.registerTool("unifi_locate_device", {
+    title: "Locate Device (LED Flash)",
+    description: "Flash a device's LED to physically locate it. Toggle the locate mode.",
+    inputSchema: {
+      mac:    z.string().describe("Device MAC address"),
+      enable: z.boolean().describe("true to start flashing, false to stop"),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ mac, enable }) =>
+    ok(await client.legacyCmd("devmgr", enable ? "set-locate" : "unset-locate", { mac })));
+}
+</file>
+
+<file path="index.ts">
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import express, { Request, Response } from "express";
+import { createClient } from "./services/unifi.js";
+import { registerReadTools } from "./tools/read.js";
+import { registerActionTools } from "./tools/actions.js";
+import { UniFiWatcher, NetworkEvent } from "./watcher.js";
+
+// ── Server ─────────────────────────────────────────────────────────────────────
+const server = new McpServer({
+  name:    "unifi-mcp-server",
+  version: "2.0.0",
+});
+
+// ── Client + Tools ─────────────────────────────────────────────────────────────
+const client = createClient();
+registerReadTools(server, client);
+registerActionTools(server, client);
+
+// ── Watcher ────────────────────────────────────────────────────────────────────
+const watcher = new UniFiWatcher(server, client, {
+  intervalMs:        parseInt(process.env.WATCHER_INTERVAL_MS ?? "15000"),
+  wanPacketLossWarn: parseFloat(process.env.WAN_PACKET_LOSS_WARN ?? "2"),
+  wanPacketLossCrit: parseFloat(process.env.WAN_PACKET_LOSS_CRIT ?? "10"),
+  wanLatencyWarnMs:  parseInt(process.env.WAN_LATENCY_WARN_MS   ?? "80"),
+  wanLatencyCritMs:  parseInt(process.env.WAN_LATENCY_CRIT_MS   ?? "200"),
+});
+
+// ── SSE client registry (HTTP mode only) ───────────────────────────────────────
+// Each connected SSE client gets a response stream registered here.
+// When watcher fires an event, it fans out to all open streams.
+const sseClients = new Set<Response>();
+
+function fanOutSSE(event: NetworkEvent) {
+  const payload = `data: ${JSON.stringify(event)}\n\n`;
+  for (const res of sseClients) {
+    try { res.write(payload); } catch { sseClients.delete(res); }
+  }
+}
+
+// ── Transport: stdio ───────────────────────────────────────────────────────────
+async function runStdio() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  watcher.start();
+  console.error("UniFi MCP server v2 running on stdio (watcher active)");
+}
+
+// ── Transport: HTTP + SSE ──────────────────────────────────────────────────────
+async function runHTTP() {
+  const app = express();
+  app.use(express.json());
+
+  // MCP endpoint
+  app.post("/mcp", async (req: Request, res: Response) => {
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true,
+    });
+    res.on("close", () => transport.close());
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+  });
+
+  // SSE event stream — any client can subscribe here for live network events
+  // GET /events  →  text/event-stream, keeps connection open
+  app.get("/events", (req: Request, res: Response) => {
+    res.setHeader("Content-Type",  "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection",    "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no"); // nginx: disable buffering
+    res.flushHeaders();
+
+    // Send an initial heartbeat so the client knows it's connected
+    res.write(`data: ${JSON.stringify({ type: "connected", server: "unifi-mcp-server", timestamp: new Date().toISOString() })}\n\n`);
+
+    sseClients.add(res);
+    console.error(`[sse] client connected — ${sseClients.size} active`);
+
+    // Keepalive ping every 30s to prevent proxy timeouts
+    const ping = setInterval(() => {
+      try { res.write(": ping\n\n"); } catch { clearInterval(ping); }
+    }, 30_000);
+
+    req.on("close", () => {
+      clearInterval(ping);
+      sseClients.delete(res);
+      console.error(`[sse] client disconnected — ${sseClients.size} active`);
+    });
+  });
+
+  // Health
+  app.get("/health", (_: Request, res: Response) => res.json({
+    status:     "ok",
+    server:     "unifi-mcp-server",
+    version:    "2.0.0",
+    watcher:    "active",
+    sseClients: sseClients.size,
+    timestamp:  new Date().toISOString(),
+  }));
+
+  const port = parseInt(process.env.PORT ?? "3000");
+  app.listen(port, () => {
+    console.error(`UniFi MCP server v2 running on http://localhost:${port}`);
+    console.error(`  MCP endpoint : POST /mcp`);
+    console.error(`  SSE stream   : GET  /events`);
+    console.error(`  Health       : GET  /health`);
+
+    // Wire watcher events to SSE fan-out
+    watcher.subscribe(fanOutSSE);
+    watcher.start();
+  });
+}
+
+// ── Entry ──────────────────────────────────────────────────────────────────────
+const transport = process.env.TRANSPORT ?? "stdio";
+
+if (transport === "http") {
+  runHTTP().catch((err) => { console.error(err); process.exit(1); });
+} else {
+  runStdio().catch((err) => { console.error(err); process.exit(1); });
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "unifi-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for UniFi Network API — full read/write access to UniFi Cloud Gateway",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "inspector": "npx @modelcontextprotocol/inspector node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "express": "^4.18.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+</file>
+
+<file path="read.ts">
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+import { UniFiClient } from "../services/unifi.js";
+
+function ok(data: unknown) {
+  return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+}
+
+export function registerReadTools(server: McpServer, client: UniFiClient) {
+
+  server.registerTool("unifi_get_site_info", {
+    title: "Get Site Info",
+    description: "Get UniFi application and controller info.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.v1("/info")));
+
+  server.registerTool("unifi_list_devices", {
+    title: "List Devices",
+    description: "List all adopted UniFi devices (APs, switches, gateways) with status, uptime, and firmware.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/devices")));
+
+  server.registerTool("unifi_get_device", {
+    title: "Get Device",
+    description: "Get full details for a single adopted device by UUID.",
+    inputSchema: { deviceId: z.string().describe("Device UUID from unifi_list_devices") },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ deviceId }) => ok(await client.site(`/devices/${deviceId}`)));
+
+  server.registerTool("unifi_get_device_stats", {
+    title: "Get Device Statistics",
+    description: "Get latest statistics for a device — throughput, CPU, memory, radio stats.",
+    inputSchema: { deviceId: z.string().describe("Device UUID") },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ deviceId }) => ok(await client.site(`/devices/${deviceId}/statistics/latest`)));
+
+  server.registerTool("unifi_list_clients", {
+    title: "List Connected Clients",
+    description: "List all currently connected clients with IP, MAC, SSID, signal, and throughput.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/clients")));
+
+  server.registerTool("unifi_get_client", {
+    title: "Get Client Details",
+    description: "Get full details for a single connected client by UUID.",
+    inputSchema: { clientId: z.string().describe("Client UUID from unifi_list_clients") },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ clientId }) => ok(await client.site(`/clients/${clientId}`)));
+
+  server.registerTool("unifi_get_client_history", {
+    title: "Get Client History",
+    description: "Get connection history for a client by MAC address (legacy API — richer historical data).",
+    inputSchema: { mac: z.string().describe("Client MAC address e.g. aa:bb:cc:dd:ee:ff") },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ mac }) => ok(await client.legacy(`/stat/user/${mac}`)));
+
+  server.registerTool("unifi_list_wans", {
+    title: "List WAN Interfaces",
+    description: "Get WAN interface details — IPs, uptime, ISP info.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/wans")));
+
+  server.registerTool("unifi_get_wan_health", {
+    title: "Get WAN Health",
+    description: "Get WAN health stats including uptime, latency, and packet loss (legacy API).",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.legacy("/stat/health")));
+
+  server.registerTool("unifi_list_networks", {
+    title: "List Networks",
+    description: "List all networks (VLANs, subnets, corporate, guest, IoT).",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/networks")));
+
+  server.registerTool("unifi_get_network", {
+    title: "Get Network Details",
+    description: "Get full details for a single network by UUID.",
+    inputSchema: { networkId: z.string().describe("Network UUID") },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ networkId }) => ok(await client.site(`/networks/${networkId}`)));
+
+  server.registerTool("unifi_list_wifi_broadcasts", {
+    title: "List WiFi Broadcasts",
+    description: "List all WiFi SSIDs/broadcasts with security config, client isolation, and schedule.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/wifi/broadcasts")));
+
+  server.registerTool("unifi_list_firewall_policies", {
+    title: "List Firewall Policies",
+    description: "List all firewall policies with zones, actions, and schedules.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/firewall/policies")));
+
+  server.registerTool("unifi_list_firewall_zones", {
+    title: "List Firewall Zones",
+    description: "List firewall zones. Required before creating firewall policies — you need zone UUIDs.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/firewall/zones")));
+
+  server.registerTool("unifi_list_acl_rules", {
+    title: "List ACL Rules",
+    description: "List all ACL rules (layer 2/3 switch-level traffic control).",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/acl-rules")));
+
+  server.registerTool("unifi_list_dns_policies", {
+    title: "List DNS Policies",
+    description: "List DNS policies — A, AAAA, CNAME, MX, SRV, TXT records and domain forwarding.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/dns/policies")));
+
+  server.registerTool("unifi_list_dpi_apps", {
+    title: "List DPI Applications",
+    description: "List all DPI-recognised applications. Use IDs for traffic matching and firewall destination filters.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.v1("/dpi/applications")));
+
+  server.registerTool("unifi_list_dpi_categories", {
+    title: "List DPI Categories",
+    description: "List DPI application categories (e.g. Streaming, Gaming, Social).",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.v1("/dpi/categories")));
+
+  server.registerTool("unifi_list_traffic_matching_lists", {
+    title: "List Traffic Matching Lists",
+    description: "List traffic matching lists (IP ranges, ports) used as firewall policy targets.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/traffic-matching-lists")));
+
+  server.registerTool("unifi_list_pending_devices", {
+    title: "List Pending Devices",
+    description: "List devices detected on the network but not yet adopted.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.v1("/pending-devices")));
+
+  server.registerTool("unifi_list_vpn_servers", {
+    title: "List VPN Servers",
+    description: "List VPN server configs.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/vpn/servers")));
+
+  server.registerTool("unifi_list_vpn_tunnels", {
+    title: "List VPN Tunnels",
+    description: "List site-to-site VPN tunnels.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.site("/vpn/site-to-site-tunnels")));
+
+  server.registerTool("unifi_get_alerts", {
+    title: "Get Alerts",
+    description: "Get recent alerts and alarms from the controller (legacy API).",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.legacy("/stat/alarm")));
+
+  server.registerTool("unifi_get_events", {
+    title: "Get Events",
+    description: "Get recent network events — client connects, disconnects, auth failures (legacy API).",
+    inputSchema: {
+      limit: z.number().int().min(1).max(500).default(100).describe("Number of events to return"),
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async ({ limit }) => ok(await client.legacy(`/stat/event?_limit=${limit}`)));
+
+  server.registerTool("unifi_get_site_stats", {
+    title: "Get Site Statistics",
+    description: "Get aggregate site stats — total clients, throughput, satisfaction score (legacy API).",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.legacy("/stat/sysinfo")));
+
+  server.registerTool("unifi_get_rogues", {
+    title: "Get Rogue APs",
+    description: "Get detected rogue/neighbouring access points.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  }, async () => ok(await client.legacy("/stat/rogueap")));
+}
+</file>
+
+<file path="README.md">
+# unifi-mcp-server v2
+
+MCP server for UniFi Network — full read/write control plus a live event watcher over SSE.
+
+## What's in here
+
+- **30+ read tools** — devices, clients, WANs, firewall policies, zones, ACL rules, DNS, DPI, VPN, rogue APs, alerts
+- **20+ action tools** — restart devices, block/unblock clients, manage WiFi SSIDs, create/delete firewall policies with scheduling, ACL rules, DNS policies, traffic matching lists
+- **Live event watcher** — polls UniFi every 15s and pushes events over SSE and MCP logging notifications when things change
+
+## Events the watcher detects
+
+| Category | What triggers it |
+|----------|-----------------|
+| `wan` | WAN goes down/up, packet loss above threshold, latency above threshold |
+| `device` | Any adopted device goes offline or comes back online |
+| `client` | New/unrecognised client connects to the network |
+| `alert` | New UniFi system alert (not previously seen) |
+| `security` | New rogue AP detected |
+
+## Setup
+
+```bash
+cp .env.example .env
+# fill in your values
+npm install
+npm run build
+npm start
+```
+
+### Get your site UUID (v1 API)
+
+```bash
+curl -s -H "X-API-Key: YOUR_API_KEY" https://YOUR_CONTROLLER/v1/sites | jq '.[].id'
+```
+
+## Running modes
+
+### stdio (Claude Desktop)
+
+```bash
+TRANSPORT=stdio npm start
+```
+
+Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "unifi": {
+      "command": "node",
+      "args": ["/path/to/unifi-mcp-server/dist/index.js"],
+      "env": {
+        "UNIFI_CONTROLLER": "https://192.168.1.1",
+        "UNIFI_API_KEY": "your-key",
+        "UNIFI_SITE_ID": "your-site-uuid",
+        "UNIFI_SITE_NAME": "default"
+      }
+    }
+  }
+}
+```
+
+### HTTP + SSE (Cloudflare agents, orchestrators)
+
+```bash
+TRANSPORT=http PORT=3000 npm start
+```
+
+Endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/mcp` | POST | MCP JSON-RPC |
+| `/events` | GET | SSE stream — live network events |
+| `/health` | GET | Status + active SSE client count |
+
+### Consuming the SSE stream
+
+```javascript
+const es = new EventSource("http://your-mini-pc:3000/events");
+
+es.onmessage = (e) => {
+  const event = JSON.parse(e.data);
+  console.log(event.severity, event.title, event.detail);
+};
+```
+
+Event shape:
+
+```typescript
+{
+  id:        string;          // unique event ID
+  severity:  "info" | "warning" | "critical";
+  category:  "wan" | "device" | "client" | "security" | "alert";
+  title:     string;          // short human-readable summary
+  detail:    string;          // full detail
+  timestamp: string;          // ISO 8601
+  raw?:      unknown;         // raw UniFi API payload
+}
+```
+
+### Watcher thresholds
+
+All configurable via env vars — see `.env.example`.
+
+## Test with MCP Inspector
+
+```bash
+npm run inspector
+```
+</file>
+
+<file path="unifi.ts">
+// ── UniFi API Client ───────────────────────────────────────────────────────────
+// Handles both the modern v1 API and the legacy proxy/network API
+// v1  → /v1/...                       (API key auth, JSON)
+// Legacy → /proxy/network/api/s/...   (API key auth, JSON)
+
+export interface UniFiConfig {
+  controller: string; // e.g. https://192.168.1.1
+  apiKey: string;
+  siteId: string;     // v1 uses UUID; legacy uses slug e.g. "default"
+  siteName: string;   // legacy site slug
+}
+
+export class UniFiClient {
+  constructor(private config: UniFiConfig) {}
+
+  // ── Core request ─────────────────────────────────────────────────────────────
+  async request<T = unknown>(
+    path: string,
+    method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" = "GET",
+    body?: unknown
+  ): Promise<T> {
+    const url = `${this.config.controller}${path}`;
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "X-API-Key":    this.config.apiKey,
+        "Content-Type": "application/json",
+        "Accept":       "application/json",
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`UniFi ${method} ${path} → ${res.status} ${res.statusText}: ${text}`);
+    }
+
+    if (res.status === 204) return null as T;
+    return res.json() as Promise<T>;
+  }
+
+  // ── v1 helpers ────────────────────────────────────────────────────────────────
+  v1<T = unknown>(path: string, method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown) {
+    return this.request<T>(`/v1${path}`, method, body);
+  }
+
+  site<T = unknown>(path: string, method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown) {
+    return this.v1<T>(`/sites/${this.config.siteId}${path}`, method, body);
+  }
+
+  // ── Legacy helpers ────────────────────────────────────────────────────────────
+  legacy<T = unknown>(path: string, method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown) {
+    return this.request<T>(`/proxy/network/api/s/${this.config.siteName}${path}`, method, body);
+  }
+
+  legacyCmd<T = unknown>(manager: string, cmd: string, extra: Record<string, unknown> = {}) {
+    return this.legacy<T>(`/cmd/${manager}`, "POST", { cmd, ...extra });
+  }
+}
+
+// ── Singleton factory ─────────────────────────────────────────────────────────
+export function createClient(): UniFiClient {
+  const controller = process.env.UNIFI_CONTROLLER;
+  const apiKey     = process.env.UNIFI_API_KEY;
+  const siteId     = process.env.UNIFI_SITE_ID;
+  const siteName   = process.env.UNIFI_SITE_NAME ?? "default";
+
+  if (!controller || !apiKey || !siteId) {
+    throw new Error(
+      "Missing required env vars: UNIFI_CONTROLLER, UNIFI_API_KEY, UNIFI_SITE_ID"
+    );
+  }
+
+  return new UniFiClient({ controller, apiKey, siteId, siteName });
+}
+</file>
+
+</files>
