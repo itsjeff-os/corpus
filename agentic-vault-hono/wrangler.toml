@@ -1,0 +1,12 @@
+name = "agentic-vault-hono"
+main = "src/index.ts"
+compatibility_date = "2024-09-25"
+
+# Add secrets with:
+# wrangler secret put ZEP_API_KEY
+# wrangler secret put SUPABASE_URL
+# wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+# wrangler secret put OPENAI_API_KEY
+
+[ai]
+binding = "AI"
